@@ -1,0 +1,143 @@
+/* =====================================================================
+   StratLab theme layer (loaded after style.css)
+   Navy base, one accent colour per course module, boxed panels,
+   decision vs results distinction, progress and mission checklist.
+   ===================================================================== */
+:root {
+  --navy: #13294b;
+  --navy-2: #1d3a66;
+  --bg: #eef1f5;
+  --surface: #ffffff;
+  --surface-2: #f5f7fa;
+  --line: #dde2ea;
+  --line-2: #c3cad6;
+  --ink: #142033;
+  --ink-2: #3a475b;
+  --muted: #687589;
+  --brand: #13294b;
+  --brand-ink: #ffffff;
+  --brand-soft: #e6ebf3;
+  --accent: #1f5fa8;
+  --hl: #ffd84d;
+  --hl-soft: #fff3c4;
+  --mod: #13294b;
+  --radius: 6px;
+  --shadow: 0 1px 2px rgba(19, 41, 75, .06), 0 2px 8px rgba(19, 41, 75, .04);
+}
+:root[data-theme="dark"] {
+  --navy: #0d1a30; --navy-2: #16294a; --bg: #0f141c; --surface: #171e29; --surface-2: #1d2532;
+  --line: #2a3445; --line-2: #3d4a5f; --ink: #e8edf5; --ink-2: #c0c9d6; --muted: #8b97a8;
+  --brand: #8fb0e8; --brand-ink: #0f141c; --brand-soft: #1f2b40; --accent: #8fb0e8; --shadow: none;
+}
+
+/* ---------- sidebar ---------- */
+.sidebar { padding-top: 0; }
+.sidebar .brand { background: var(--navy); color: #fff; padding: 18px 22px; margin-bottom: 14px; border-bottom: 3px solid var(--hl); }
+.sidebar .brand small { color: #b9c6dc; }
+.sidebar .brand-mark rect[fill="none"], .sidebar .brand-mark line { stroke: #fff; }
+.side-sec { display: flex; align-items: center; gap: 8px; }
+.side-sec::before { content: ""; width: 8px; height: 8px; border-radius: 2px; background: var(--sec, var(--muted)); flex: none; }
+.side-game.played::after { content: "\2713"; margin-left: auto; color: var(--good); font-size: .8rem; font-weight: 700; }
+.side-game.active { border-left-color: var(--mod); }
+.side-link.active { border-left-color: var(--navy); }
+.who { background: var(--surface-2); border: 1px solid var(--line); border-radius: var(--radius); padding: 8px 10px; }
+
+/* ---------- cards: boxes with a header strip ---------- */
+.card { border-radius: 8px; box-shadow: var(--shadow); border-color: var(--line); padding: 18px 20px; }
+.card > .panel-title:first-child, .card > details.fold > summary {
+  margin: -18px -20px 14px; padding: 10px 20px; background: var(--surface-2); border-bottom: 1px solid var(--line);
+  border-radius: 8px 8px 0 0; color: var(--ink); position: relative;
+}
+.card > .panel-title:first-child::before { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 3px; background: var(--mod); border-radius: 8px 0 0 0; }
+.card > details.fold:not([open]) > summary { margin-bottom: -18px; border-bottom: 0; border-radius: 8px; }
+
+/* decision panels: any card holding a primary action or move buttons */
+.card:has(.btn.primary, .btn.p1, .btn.p2, #co-prop) {
+  background: color-mix(in srgb, var(--mod) 5%, var(--surface));
+  border-color: color-mix(in srgb, var(--mod) 30%, var(--line));
+  box-shadow: inset 4px 0 0 var(--mod), var(--shadow);
+}
+.card:has(.btn.primary, .btn.p1, .btn.p2, #co-prop) > .panel-title:first-child { background: color-mix(in srgb, var(--mod) 12%, var(--surface)); }
+.card:has(.btn.primary, .btn.p1, .btn.p2, #co-prop) > .panel-title:first-child::after { content: "Your decision"; display: inline-block; margin-left: 8px; padding: 1px 7px; border-radius: 3px; background: var(--mod); color: #fff; font-size: .62rem; letter-spacing: .08em; vertical-align: 1px; white-space: nowrap; }
+
+/* ---------- KPI tiles ---------- */
+.kpis { border: 0; gap: 10px; }
+.kpi { background: var(--surface-2); border: 1px solid var(--line); border-top: 3px solid var(--line-2); border-radius: 6px; padding: 8px 12px; }
+.kpi:last-child { border-right: 1px solid var(--line); }
+.kpi.p1 { border-top-color: var(--p1); }
+.kpi.p2 { border-top-color: var(--p2); }
+.kpi.accent { border-top-color: var(--hl); }
+
+/* ---------- controls ---------- */
+.btn { border-radius: 6px; border-color: var(--line-2); }
+.btn.primary, .btn.accent { background: var(--navy); border-color: var(--navy); }
+.btn.primary:hover, .btn.accent:hover { background: var(--navy-2); }
+:root[data-theme="dark"] .btn.primary { background: var(--brand); color: var(--brand-ink); border-color: var(--brand); }
+.subtabs { border: 1px solid var(--line-2); border-radius: 8px; overflow: hidden; background: var(--surface); }
+.subtab { border-right-color: var(--line-2); }
+.subtab.active { background: var(--mod); color: #fff; }
+.note { border-radius: 0 6px 6px 0; }
+input[type="range"] { accent-color: var(--mod); }
+.choice { border-radius: 6px; }
+
+/* ---------- game hero ---------- */
+.game-head { border: 0; padding: 20px 26px; border-radius: 10px; background: color-mix(in srgb, var(--mod) 9%, var(--surface)); border-left: 6px solid var(--mod); margin-bottom: 4px; }
+.game-head .kicker, .game-head .kicker b { color: var(--mod); }
+.hero-row { display: flex; gap: 18px; align-items: flex-start; }
+.hero-no { font-family: var(--mono); font-weight: 600; font-size: 2.3rem; line-height: 1; color: var(--mod); padding-top: 4px; }
+.hero-meta { display: flex; flex-wrap: wrap; gap: 6px 18px; margin-top: 12px; font-size: .82rem; color: var(--ink-2); }
+.hero-meta b { color: var(--ink); }
+.brief { background: var(--surface); border-left-color: var(--hl); border-radius: 0 6px 6px 0; padding: 10px 14px; margin-top: 14px; }
+.tab.active { border-bottom-color: var(--mod); color: var(--ink); }
+
+/* ---------- mission checklist ---------- */
+.mission { background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 12px 16px; margin-bottom: 20px; box-shadow: var(--shadow); display: grid; grid-template-columns: 160px 1fr; gap: 14px; }
+.mission .mhead { font-family: var(--cond); font-weight: 600; font-size: .78rem; text-transform: uppercase; letter-spacing: .08em; color: var(--mod); }
+.mission .bar { height: 6px; background: var(--surface-2); border: 1px solid var(--line); border-radius: 3px; margin-top: 8px; overflow: hidden; }
+.mission .bar i { display: block; height: 100%; background: var(--mod); transition: width .3s; }
+.mission .mhead small { display: block; margin-top: 5px; text-transform: none; letter-spacing: 0; font-family: var(--sans); color: var(--muted); font-weight: 400; font-size: .78rem; }
+.mission ul { list-style: none; margin: 0; padding: 0; }
+.mission li { display: flex; gap: 10px; align-items: flex-start; padding: 3px 0; font-size: .9rem; color: var(--ink-2); }
+.mission li input { margin-top: 4px; accent-color: var(--mod); width: 15px; height: 15px; flex: none; cursor: pointer; }
+.mission li.done > span { color: var(--muted); text-decoration: line-through; text-decoration-color: var(--line-2); }
+.mission .more { font-size: .8rem; margin-top: 4px; }
+@media (max-width: 640px) { .mission { grid-template-columns: 1fr; } .hero-no { display: none; } }
+
+/* ---------- home ---------- */
+.masthead { background: var(--navy); color: #fff; border: 0; border-radius: 12px; padding: 30px 32px 28px; margin-bottom: 16px; position: relative; overflow: hidden; }
+.masthead h1 { color: #fff; }
+.masthead .kicker { color: #b9c6dc; }
+.masthead .lead { color: #dbe3f0; max-width: 620px; }
+.masthead .btn { border-color: rgba(255, 255, 255, .45); background: transparent; color: #fff; }
+.masthead .btn:hover { background: rgba(255, 255, 255, .1); }
+.masthead .btn.primary { background: var(--hl); color: #13294b; border-color: var(--hl); }
+.masthead .btn.primary:hover { background: #ffe175; }
+.masthead .deco { position: absolute; right: 34px; top: 30px; width: 120px; height: 120px; opacity: .95; }
+@media (max-width: 900px) { .masthead .deco { display: none; } }
+.progress-card { display: flex; gap: 20px; align-items: center; flex-wrap: wrap; }
+.progress-card .pbar { flex: 1 1 220px; height: 10px; background: var(--surface-2); border-radius: 5px; overflow: hidden; border: 1px solid var(--line); }
+.progress-card .pbar i { display: block; height: 100%; background: var(--good); }
+.progress-card .big { font-family: var(--mono); font-size: 1.5rem; font-weight: 600; }
+.home-two { display: grid; grid-template-columns: 1.3fr 1fr; gap: 16px; }
+.home-two .card h4 { font-family: var(--cond); text-transform: uppercase; letter-spacing: .08em; font-size: .76rem; color: var(--muted); margin: 0 0 6px; }
+.home-two .card p { font-size: .9rem; color: var(--ink-2); margin: 0; }
+@media (max-width: 860px) { .home-two { grid-template-columns: 1fr; } }
+.mod-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 16px; margin-top: 18px; }
+.mod-card { background: var(--surface); border: 1px solid var(--line); border-top: 4px solid var(--c); border-radius: 8px; box-shadow: var(--shadow); padding: 14px 18px 6px; }
+.mod-card .kicker { color: var(--c); }
+.mod-card h3 { margin: 3px 0 8px; font-size: 1.06rem; }
+.mod-game { display: grid; grid-template-columns: 30px 1fr auto; gap: 10px; padding: 10px 0; border-top: 1px solid var(--line); text-decoration: none; color: var(--ink); }
+.mod-game:hover .t { text-decoration: underline; }
+.mod-game .n { font-family: var(--mono); font-weight: 600; color: var(--c); }
+.mod-game .t { font-family: var(--cond); font-weight: 600; font-size: 1.02rem; }
+.mod-game p { margin: 2px 0 0; font-size: .84rem; color: var(--muted); line-height: 1.45; }
+.mod-game .st { font-size: .74rem; color: var(--muted); white-space: nowrap; padding-top: 3px; }
+.mod-game .st.ok { color: var(--good); font-weight: 600; }
+
+/* other page heads become boxed */
+.page-head { border-bottom: 0; background: var(--surface); border-radius: 10px; padding: 20px 24px; border-left: 6px solid var(--navy); box-shadow: var(--shadow); max-width: none; }
+.pager { border-top: 0; gap: 14px; }
+.pager a { background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 12px 16px; box-shadow: var(--shadow); }
+.pager a:hover { border-color: var(--mod); }
+.case { border-radius: 0; }
+.grid { border-radius: 8px; overflow: hidden; background: var(--surface); box-shadow: var(--shadow); }

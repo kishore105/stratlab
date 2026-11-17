@@ -119,6 +119,7 @@
     const rec = { id: Date.now().toString(36) + Math.random().toString(36).slice(2, 7), t: new Date().toISOString(), game: gameId, title: g ? g.title : gameId, summary, data: data || {} };
     const all = GT.readLog(); all.push(rec); saveLog(all);
     GT.send(rec);
+    if (typeof GT.onLog === 'function') { try { GT.onLog(rec); } catch (e) { } }
     return rec;
   };
   GT.clearLog = () => { try { localStorage.removeItem(LOG_KEY); } catch (e) { } };

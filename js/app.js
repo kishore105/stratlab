@@ -19,6 +19,16 @@
 
   const SHORT = { 'price-war': 'Price War Lab', 'beauty-contest': 'Beauty Contest', duopoly: 'Cournot vs Bertrand', mixed: 'Audits & Penalty Kicks', entry: 'Entry & Commitment', bargaining: 'Bargaining Table', repeated: 'OPEC Cartel', information: 'Lemons & Signals', auction: 'Auction House', coalition: 'Shapley & Core', matching: 'Matching Market', 'public-goods': 'Climate Club' };
   const no2 = g => String(g.num).padStart(2, '0');
+  const MCOL = { M1: '#2e6f9e', M2: '#2f8f83', M3: '#7a5195', M4: '#a23b72', M5: '#5c7f3a', M6: '#b9801b', M7: '#3f5fb0', M8: '#1f8a9e', M9: '#b04a4a', M10: '#3e7b58' };
+  const colorOf = g => MCOL[g.modules[0]] || '#13294b';
+  const playedCounts = () => { const c = {}; GT.readLog().forEach(r => { c[r.game] = (c[r.game] || 0) + 1; }); return c; };
+  function markPlayed() { const c = playedCounts(); $$('.side-game').forEach(a => a.classList.toggle('played', !!c[a.dataset.g])); }
+  GT.onLog = () => { markPlayed(); const m = $('#heroPlays'); if (m) paintPlays(m.dataset.g); };
+  function paintPlays(id) {
+    const el = $('#heroPlays'); if (!el) return;
+    const recs = GT.readLog().filter(r => r.game === id);
+    el.innerHTML = recs.length ? `<b>${recs.length}</b> result${recs.length > 1 ? 's' : ''} logged · last: ${esc(recs[recs.length - 1].summary)}` : 'Not played yet';
+  }
   const badge = g => `<span class="mono" style="color:var(--muted)">${no2(g)}</span>`;
   GT.shortTitle = g => SHORT[g.id] || g.title;
   const LOGO = `<svg class="brand-mark" viewBox="0 0 30 30" aria-hidden="true"><rect x="1" y="1" width="28" height="28" fill="none" stroke="currentColor" stroke-width="2"/><line x1="15" y1="1" x2="15" y2="29" stroke="currentColor" stroke-width="2"/><line x1="1" y1="15" x2="29" y2="15" stroke="currentColor" stroke-width="2"/><rect x="16" y="16" width="12" height="12" fill="#ffe45c"/></svg>`;
@@ -102,7 +112,7 @@
     const mods = MODULES.map(m => {
       const gs = GT.games.filter(g => g.modules[0] === m.id);
       if (!gs.length) return '';
-      return `<div class="side-sec">${m.id} · ${esc(m.name.split(':')[0].replace('?', ''))}</div>` +
+      return `<div class="side-sec" style="--sec:${MCOL[m.id]}">${m.id} · ${esc(m.name.split(':')[0].replace('?', ''))}</div>` +
         gs.map(g => `<a class="side-game" data-g="${g.id}" href="#/game/${g.id}" data-search="${esc((g.title + ' ' + g.concepts.join(' ') + ' ' + g.tagline).toLowerCase())}"><span class="no">${no2(g)}</span><span>${esc(GT.shortTitle(g))}</span></a>`).join('');
     }).join('');
     sb.innerHTML = `
@@ -138,26 +148,29 @@
 
   /* ---------- home: contents table ---------- */
   function pageHome(root) {
-    let rows = '';
-    MODULES.forEach(m => {
+    const c = playedCounts();
+    const played = GT.games.filter(g => c[g.id]).length;
+    const nextG = GT.games.find(g => !c[g.id]) || GT.games[0];
+    const deco = `<svg class="deco" viewBox="0 0 120 120" aria-hidden="true"><rect x="2" y="2" width="116" height="116" fill="none" stroke="rgba(255,255,255,.35)" stroke-width="2"/><line x1="60" y1="2" x2="60" y2="118" stroke="rgba(255,255,255,.35)" stroke-width="2"/><line x1="2" y1="60" x2="118" y2="60" stroke="rgba(255,255,255,.35)" stroke-width="2"/><rect x="62" y="62" width="54" height="54" fill="#ffd84d"/><text x="31" y="36" text-anchor="middle" fill="rgba(255,255,255,.75)" font-family="IBM Plex Mono" font-size="13">3,3</text><text x="89" y="36" text-anchor="middle" fill="rgba(255,255,255,.75)" font-family="IBM Plex Mono" font-size="13">0,5</text><text x="31" y="94" text-anchor="middle" fill="rgba(255,255,255,.75)" font-family="IBM Plex Mono" font-size="13">5,0</text><text x="89" y="94" text-anchor="middle" fill="#13294b" font-family="IBM Plex Mono" font-size="13" font-weight="600">1,1</text></svg>`;
+    const mods = MODULES.map(m => {
       const gs = GT.games.filter(g => g.modules[0] === m.id);
-      if (!gs.length) return;
-      rows += `<tr class="mod"><td colspan="4"><span class="kicker">Module ${m.id.slice(1)} · Sessions ${m.sessions}</span><h3 style="display:inline">${esc(m.name)}</h3></td></tr>`;
-      rows += gs.map(g => `<tr class="game" data-href="#/game/${g.id}"><td class="no">${no2(g)}</td><td class="t"><a href="#/game/${g.id}">${esc(GT.shortTitle(g))}</a><p>${esc(g.tagline)}</p></td><td class="c">${g.concepts.slice(0, 4).map(esc).join(' · ')}</td><td class="s">S ${esc(g.sessions.replace(/\s*\(.*\)/, ''))}<br>${esc(g.time)}</td></tr>`).join('');
-    });
+      if (!gs.length) return '';
+      return `<section class="mod-card" style="--c:${MCOL[m.id]}"><div class="kicker">Module ${m.id.slice(1)} · Sessions ${m.sessions}</div><h3>${esc(m.name)}</h3>
+        ${gs.map(g => `<a class="mod-game" href="#/game/${g.id}"><span class="n">${no2(g)}</span><span><span class="t">${esc(GT.shortTitle(g))}</span><p>${esc(g.tagline)}</p></span><span class="st ${c[g.id] ? 'ok' : ''}">${c[g.id] ? '✓ played' : esc(g.time)}</span></a>`).join('')}</section>`;
+    }).join('');
     root.innerHTML = `
       <header class="masthead">
+        ${deco}
         <div class="kicker">Strategic Decision Making: A Game Theoretic Approach · MBA Term V</div>
         <h1>StratLab</h1>
-        <p class="lead">Twelve classroom games that follow the session plan. Each one has a simulation, instructions for students and for the instructor, the theory behind it, Indian and international cases, and debrief questions.</p>
-        <div class="btn-row"><a class="btn primary" href="#/game/price-war">Open game 01</a><a class="btn" href="#/choose">Which model fits my problem?</a><a class="btn" href="#/faculty">Running it in class</a></div>
+        <p class="lead">Twelve classroom games that follow the session plan. Play against the computer or with your class, then check what happened against the theory.</p>
+        <div class="btn-row"><a class="btn primary" href="#/game/${nextG.id}">${played ? 'Continue with' : 'Start with'} ${no2(nextG)} ${esc(GT.shortTitle(nextG))}</a><a class="btn" href="#/choose">Which model fits my problem?</a></div>
       </header>
-      <div class="two-col">
-        <div><h4>For students</h4><p>Read the quick start at the top of a game, play a few rounds, and then compare what happened with the equilibrium on the Theory tab. Results are logged in your browser; export them from My results for the WAI submission.</p></div>
-        <div><h4>For faculty</h4><p>Seven games have a classroom mode: collect choices on paper or a form, paste them in, and project the aggregate result. The How to play tab has a timed plan for each session.</p></div>
+      <div class="home-two">
+        <div class="card"><div class="progress-card"><div><h4 style="margin:0">Your progress</h4><span class="big">${played}</span> <span class="muted">of ${GT.games.length} games played</span></div><div class="pbar"><i style="width:${played / GT.games.length * 100}%"></i></div></div></div>
+        <div class="card"><h4>Running a class?</h4><p>Seven games have a classroom mode for collecting the whole class's choices. <a href="#/faculty">See the faculty page</a>.</p></div>
       </div>
-      <table class="contents"><tbody>${rows}</tbody></table>`;
-    $$('tr.game', root).forEach(tr => tr.addEventListener('click', e => { if (!e.target.closest('a')) location.hash = tr.dataset.href; }));
+      <div class="mod-grid">${mods}</div>`;
   }
 
   function pageGames(root) { pageHome(root); }
@@ -408,12 +421,21 @@
     const idx = GT.games.indexOf(g);
     const prev = GT.games[idx - 1], next = GT.games[idx + 1];
     const mod = MODULES.find(m => m.id === g.modules[0]);
-    const qs = g.guide.steps.slice(0, 3).map(s => `<li>${s}</li>`).join('');
+    const steps = g.guide.steps.slice(0, 4);
+    let ticks = [];
+    try { ticks = JSON.parse(localStorage.getItem('stratlab.mission.' + g.id) || '[]'); } catch (e) { }
+    const qs = steps.map((st, i) => `<li class="${ticks.includes(i) ? 'done' : ''}"><input type="checkbox" data-mi="${i}" ${ticks.includes(i) ? 'checked' : ''} aria-label="Mark step ${i + 1} done"><span>${st}</span></li>`).join('');
     root.innerHTML = `
       <header class="game-head">
-        <div class="kicker">Game <b>${no2(g)}</b> · ${mod ? esc('Module ' + mod.id.slice(1) + ', ' + mod.name) : ''} · Session ${esc(g.sessions)} · ${esc(g.time)}</div>
-        <h1>${esc(GT.shortTitle(g))}</h1>
-        <p class="game-sub">${esc(g.tagline)}</p>
+        <div class="hero-row">
+          <div class="hero-no">${no2(g)}</div>
+          <div style="flex:1;min-width:0">
+            <div class="kicker">${mod ? esc('Module ' + mod.id.slice(1) + ' · ' + mod.name) : ''}</div>
+            <h1>${esc(GT.shortTitle(g))}</h1>
+            <p class="game-sub">${esc(g.tagline)}</p>
+            <div class="hero-meta"><span>Session <b>${esc(g.sessions)}</b></span><span>Time <b>${esc(g.time)}</b></span><span>Concepts <b>${g.concepts.slice(0, 3).map(esc).join(', ')}</b></span><span id="heroPlays" data-g="${g.id}"></span></div>
+          </div>
+        </div>
         <div class="brief"><span class="kicker">The business problem</span>${g.problem}</div>
       </header>
       <div class="tabs" role="tablist">
@@ -424,7 +446,7 @@
         <button class="tab" data-t="debrief">Debrief</button>
       </div>
       <div id="pane-play">
-        <div class="quickstart" id="qs"><b>Quick start</b><ol>${qs}</ol><button class="x" id="qsx">hide</button></div>
+        <div class="mission" id="qs"><div class="mhead">Your mission<div class="bar"><i id="mbar"></i></div><small id="mcount"></small></div><div><ul>${qs}</ul><div class="more"><a href="#/game/${g.id}/guide" id="mfull">Full step-by-step guide</a></div></div></div>
         <div id="play-root"></div>
       </div>
       <div id="pane-guide" class="hide">${guideHTML(g)}</div>
@@ -435,10 +457,20 @@
         ${prev ? `<a href="#/game/${prev.id}"><small>← Previous game</small><span>${no2(prev)} ${esc(GT.shortTitle(prev))}</span></a>` : '<span></span>'}
         ${next ? `<a class="next" href="#/game/${next.id}"><small>Next game →</small><span>${no2(next)} ${esc(GT.shortTitle(next))}</span></a>` : '<span></span>'}
       </nav>`;
-    let qsHidden = false;
-    try { qsHidden = localStorage.getItem('stratlab.qs.' + g.id) === '1'; } catch (e) { }
-    if (qsHidden) $('#qs').classList.add('hide');
-    $('#qsx').onclick = () => { $('#qs').classList.add('hide'); try { localStorage.setItem('stratlab.qs.' + g.id, '1'); } catch (e) { } };
+    const paintMission = () => {
+      const done = $$('#qs input', root).filter(c => c.checked).length;
+      $('#mbar').style.width = (done / steps.length * 100) + '%';
+      $('#mcount').textContent = done === steps.length ? 'All steps done. Try the debrief questions.' : `${done} of ${steps.length} steps done`;
+    };
+    $$('#qs input', root).forEach(c => c.onchange = () => {
+      c.closest('li').classList.toggle('done', c.checked);
+      const t = $$('#qs input', root).map((x, i) => x.checked ? i : -1).filter(i => i >= 0);
+      try { localStorage.setItem('stratlab.mission.' + g.id, JSON.stringify(t)); } catch (e) { }
+      paintMission();
+    });
+    paintMission();
+    $('#mfull').onclick = e => { e.preventDefault(); $('.tab[data-t=guide]', root).click(); window.scrollTo(0, $('.tabs', root).offsetTop - 10); };
+    paintPlays(g.id);
     g.render($('#play-root'));
     // turn secondary cards into collapsible sections
     $$('[data-fold]', root).forEach(card => {
@@ -465,6 +497,9 @@
     const parts = (location.hash || '#/').replace(/^#\/?/, '').split('/');
     const page = parts[0] || '';
     $$('.side-link').forEach(a => a.classList.toggle('active', a.dataset.p === (page || 'home')));
+    const gg = page === 'game' ? GT.byId(parts[1]) : null;
+    document.documentElement.style.setProperty('--mod', gg ? colorOf(gg) : '#13294b');
+    markPlayed();
     $$('.side-game').forEach(a => a.classList.toggle('active', page === 'game' && a.dataset.g === parts[1]));
     if (page === 'games') pageGames(root);
     else if (page === 'game') pageGame(root, parts[1], parts[2]);
