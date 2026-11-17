@@ -96,8 +96,9 @@
   function render(root) {
     let st = null, ieds = null, playLog = [], persona = 'rational';
     root.innerHTML = `
-      <div class="subtabs"><button class="subtab active" data-sub="lab">Matrix lab</button><button class="subtab" data-sub="play">Play vs AI rival</button><button class="subtab" data-sub="class">Classroom mode</button></div>
-      <div class="layout-2r">
+      <div class="subtabs"><button class="subtab active" data-sub="lab">Matrix lab</button><button class="subtab" data-sub="play">Play vs AI rival</button><button class="subtab" data-sub="class">Classroom mode</button><button class="subtab" data-sub="classify">Classify the game (S2)</button></div>
+      <div data-pane="classify" class="hide"><div class="card"><div class="panel-title">Session 2: what kind of game is it?</div><p class="muted" style="font-size:.9rem">For each situation, choose one option on each of the four dimensions, then check your answers. The four dimensions are independent: a game can be sequential and still have incomplete information.</p><div id="pw-cls" class="tbl-wrap"></div><div class="btn-row mt"><button class="btn primary" id="pw-cls-go">Check answers</button><button class="btn" id="pw-cls-reset">Clear</button></div><div id="pw-cls-out"></div></div></div>
+      <div class="layout-2r" data-pane="lab play class">
         <div class="stack">
           <div class="card">
             <div class="field"><label>Scenario</label><select id="pw-preset">${Object.entries(PRESETS).map(([k, p]) => `<option value="${k}">${esc(p.name)}</option>`).join('')}</select></div>
@@ -188,7 +189,7 @@
       h += `<p style="margin:10px 0 4px"><b>Pure-strategy Nash equilibria</b><br>${an.ne.length ? an.ne.map(nm).join('<br>') : 'None'}</p>`;
       if (an.mixed) h += `<p style="margin:10px 0 4px"><b>Mixed-strategy equilibrium</b><br>${esc(st.A)} plays “${esc(st.rows[0])}” with p = ${fmt(an.mixed.p, 2)}; ${esc(st.B)} plays “${esc(st.cols[0])}” with q = ${fmt(an.mixed.q, 2)}.<br><small>Expected payoffs: ${fmt(an.mixed.ua, 1)} and ${fmt(an.mixed.ub, 1)}</small></p>`;
       const ineff = an.ne.filter(c => !an.pareto.some(p => p[0] === c[0] && p[1] === c[1]));
-      if (ineff.length) h += `<p class="muted" style="font-size:.88rem;margin-top:8px">⚠ ${ineff.length === an.ne.length ? 'Every' : 'Some'} equilibrium is Pareto-inefficient: another cell makes both firms better off. Ask what stops them getting there (enforceability, trust, antitrust law).</p>`;
+      if (ineff.length) h += `<p class="muted" style="font-size:.88rem;margin-top:8px">${ineff.length === an.ne.length ? 'Every' : 'Some'} equilibrium is Pareto-inefficient: another cell makes both firms better off. Ask what stops them getting there (enforceability, trust, antitrust law).</p>`;
       $('#pw-analysis', root).innerHTML = h;
     }
 
@@ -282,13 +283,52 @@
       GT.log('price-war', `Classroom tally for ${st.name}`, { rows: r, cols: c });
     };
 
+
+    /* ---- Session 2: classify the game ---- */
+    const DIMS = [
+      { k: 'coop', label: 'Agreements', opts: ['Non-cooperative', 'Cooperative'] },
+      { k: 'time', label: 'Timing', opts: ['Simultaneous', 'Sequential'] },
+      { k: 'pay', label: 'Info about payoffs/types', opts: ['Complete', 'Incomplete'] },
+      { k: 'moves', label: 'Info about earlier moves', opts: ['Perfect', 'Imperfect'] }
+    ];
+    const CASES = [
+      { t: 'Two petrol pumps on the same highway set the next day\'s price each evening. Neither sees the other\'s board until morning. Costs are similar and well known.', a: { coop: 0, time: 0, pay: 0, moves: 1 }, why: 'Moves are effectively simultaneous, so when a pump chooses it has not seen the rival\'s choice: imperfect information. Costs are known, so payoffs are complete.' },
+      { t: 'Jio announces new tariffs. Airtel studies them for a week and then announces its own. Both know each other\'s cost structure.', a: { coop: 0, time: 1, pay: 0, moves: 0 }, why: 'Airtel moves after observing Jio, so it is sequential with perfect information, and costs are common knowledge.' },
+      { t: 'A buyer on a used-car platform makes an offer. The seller knows the car\'s true condition; the buyer does not.', a: { coop: 0, time: 1, pay: 1, moves: 0 }, why: 'The buyer sees the listing before offering (sequential, perfect information about moves) but does not know the seller\'s type, which is incomplete information. That is the lemons problem.' },
+      { t: 'Three telecom operators submit sealed bids for a spectrum block. Each knows only its own valuation.', a: { coop: 0, time: 0, pay: 1, moves: 1 }, why: 'Sealed bids are simultaneous, so imperfect information about moves. Valuations are private, so payoffs are incomplete.' },
+      { t: 'Infosys, Wipro and a global partner have signed an enforceable consortium agreement and must now divide ₹800 crore of profit.', a: { coop: 1, time: null, pay: null, moves: null }, why: 'Binding, enforceable agreements make this a cooperative game. We analyse coalitions and allocations (Core, Shapley) rather than moves, so timing and information dimensions are not the focus.' },
+      { t: 'OPEC+ members agree production quotas at a meeting, but no court can enforce them. Each month every member chooses its output without seeing the others\' figures until later.', a: { coop: 0, time: 0, pay: 0, moves: 1 }, why: 'The meeting looks cooperative, but quotas are not enforceable, so it is non-cooperative. Within each month outputs are chosen simultaneously, so imperfect information, even though the game repeats.' },
+      { t: 'Maruti decides whether to build an EV platform. Tata Motors sees the decision and responds. Neither knows yet how large EV demand will be, but both face the same uncertainty.', a: { coop: 0, time: 1, pay: 0, moves: 0 }, why: 'Sequential with perfect information about moves. Shared uncertainty about demand is modelled as a move by Nature that both observe equally, not as private information, so payoffs are still complete.' }
+    ];
+    function drawCls() {
+      $('#pw-cls', root).innerHTML = `<table class="data"><thead><tr><th style="min-width:260px">Situation</th>${DIMS.map(d => `<th>${d.label}</th>`).join('')}</tr></thead><tbody>${CASES.map((c, i) => `<tr><td style="font-size:.86rem">${i + 1}. ${esc(c.t)}</td>${DIMS.map(d => `<td><select data-c="${i}" data-d="${d.k}" style="min-width:130px"><option value="">–</option>${d.opts.map((o, k) => `<option value="${k}">${o}</option>`).join('')}</select></td>`).join('')}</tr>`).join('')}</tbody></table>`;
+      $('#pw-cls-out', root).innerHTML = '';
+    }
+    $('#pw-cls-go', root).onclick = () => {
+      let right = 0, total = 0; const rows = [];
+      CASES.forEach((c, i) => {
+        let ok = true;
+        DIMS.forEach(d => {
+          const sel = $(`select[data-c="${i}"][data-d="${d.k}"]`, root); const ans = c.a[d.k];
+          if (ans === null) { sel.style.borderColor = ''; return; }
+          total++; const hit = sel.value !== '' && +sel.value === ans; if (hit) right++; else ok = false;
+          sel.style.borderColor = hit ? 'var(--good)' : 'var(--bad)';
+        });
+        rows.push(`<div style="margin:6px 0"><b>${i + 1}.</b> ${ok ? '<span class="pill good">correct</span>' : '<span class="pill bad">check</span>'} ${c.why}</div>`);
+      });
+      $('#pw-cls-out', root).innerHTML = `<div class="note"><p><b>${right} of ${total}</b> classifications correct. A green border marks a correct choice, red an incorrect one.</p></div><div style="font-size:.88rem">${rows.join('')}</div>`;
+      GT.log('price-war', `Classification exercise: ${right}/${total}`, { right, total });
+    };
+    $('#pw-cls-reset', root).onclick = drawCls;
+    drawCls();
+
     preset.onchange = () => load(preset.value);
     load('telecom');
   }
 
   GT.register({
     id: 'price-war', num: 1, icon: '⚔️', title: 'Price War Matrix Lab', modules: ['M1', 'M2'], sessions: '1–4, 7', time: '30–40 min',
-    tagline: 'Build payoff matrices for telecom, FMCG, petrol pumps and Boeing–Airbus. Find dominant strategies, run IEDS, locate Nash equilibria.',
+    tagline: 'Payoff matrices for telecom tariffs, FMCG advertising, highway petrol pumps and Boeing vs Airbus. Edit the numbers and the solver marks best responses, dominated strategies and equilibria. Includes the Session 2 classification exercise.',
     problem: 'Two telecom companies must set prices at the same time without knowing each other\'s choice. How do we represent this formally, and what does it predict? Why do rivals end up in price wars even when cooperation would benefit everyone?',
     concepts: ['Normal form', 'Dominant strategy', 'IEDS', 'Nash equilibrium', 'Pareto efficiency'],
     render,
@@ -304,6 +344,7 @@
         'Switch to <b>Petrol pumps (3×3)</b> and click <b>Next step</b> under IEDS repeatedly. Note the order of elimination and why each step is justified.',
         'Edit the payoffs. Can you turn the telecom game into a coordination game? What business change (e.g. a regulator-imposed price floor) would those new numbers represent?',
         'Go to <b>Play vs AI rival</b> and play 6 rounds against the <b>Mystery</b> persona. Guess the persona before it is revealed.',
+        'Open <b>Classify the game (S2)</b> and classify the seven situations on the four dimensions: cooperative or not, timing, information about payoffs, information about earlier moves.',
         'Record your results (they are logged automatically) and answer the debrief questions.'
       ],
       facilitator: [

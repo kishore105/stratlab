@@ -182,7 +182,7 @@
 
   GT.register({
     id: 'repeated', num: 7, icon: '🛢️', title: 'OPEC Cartel: Repeated Games', modules: ['M4'], sessions: '12', time: '40–50 min',
-    tagline: 'Play an indefinitely repeated quota game against a hidden strategy, then run an Axelrod tournament and watch strategies evolve.',
+    tagline: 'Comply with a production quota or cheat, against a rival whose strategy you have to work out. Then run an Axelrod-style tournament and find the discount factor a cartel needs.',
     problem: 'OPEC members keep breaking production quotas they collectively agreed to. Why does cooperation collapse, and can it ever be sustained? What separates OPEC+ from the Indian telecom tariff hikes of 2024?',
     concepts: ['Repeated games', 'Grim trigger', 'Tit-for-Tat', 'Folk theorem', 'Discount factor', 'Tacit collusion'],
     render,

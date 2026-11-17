@@ -17,16 +17,16 @@
   ];
   GT.MODULES = MODULES;
 
-  const COLORS = { M1: '#4f46e5', M2: '#2563eb', M3: '#0891b2', M4: '#059669', M5: '#65a30d', M6: '#d97706', M7: '#db2777', M8: '#9333ea', M9: '#e11d48', M10: '#0d9488' };
   const SHORT = { 'price-war': 'Price War Lab', 'beauty-contest': 'Beauty Contest', duopoly: 'Cournot vs Bertrand', mixed: 'Audits & Penalty Kicks', entry: 'Entry & Commitment', bargaining: 'Bargaining Table', repeated: 'OPEC Cartel', information: 'Lemons & Signals', auction: 'Auction House', coalition: 'Shapley & Core', matching: 'Matching Market', 'public-goods': 'Climate Club' };
-  const colorOf = g => COLORS[g.modules[0]];
-  const badge = g => `<span class="num-badge" style="background:${colorOf(g)}">${g.num}</span>`;
+  const no2 = g => String(g.num).padStart(2, '0');
+  const badge = g => `<span class="mono" style="color:var(--muted)">${no2(g)}</span>`;
   GT.shortTitle = g => SHORT[g.id] || g.title;
+  const LOGO = `<svg class="brand-mark" viewBox="0 0 30 30" aria-hidden="true"><rect x="1" y="1" width="28" height="28" fill="none" stroke="currentColor" stroke-width="2"/><line x1="15" y1="1" x2="15" y2="29" stroke="currentColor" stroke-width="2"/><line x1="1" y1="15" x2="29" y2="15" stroke="currentColor" stroke-width="2"/><rect x="16" y="16" width="12" height="12" fill="#ffe45c"/></svg>`;
 
   /* ---------- theme (light by default) ---------- */
   function setTheme(t) {
     document.documentElement.dataset.theme = t;
-    const b = $('#themeBtn'); if (b) b.textContent = t === 'dark' ? '☀ Light' : '☾ Dark';
+    const b = $('#themeBtn'); if (b) b.textContent = t === 'dark' ? 'Light mode' : 'Dark mode';
   }
   function initTheme() {
     let saved = 'light';
@@ -34,24 +34,25 @@
     setTheme(saved);
   }
 
-  /* ---------- sidebar ---------- */
+  /* ---------- sidebar: a table of contents ---------- */
   function renderSidebar() {
     const sb = $('#sidebar');
     const mods = MODULES.map(m => {
       const gs = GT.games.filter(g => g.modules[0] === m.id);
       if (!gs.length) return '';
-      return `<div class="side-sec">${m.id} · ${esc(m.name.split(':')[0])}</div>` +
-        gs.map(g => `<a class="side-game" data-g="${g.id}" href="#/game/${g.id}" data-search="${esc((g.title + ' ' + g.concepts.join(' ') + ' ' + g.tagline).toLowerCase())}">${badge(g)}<span>${esc(GT.shortTitle(g))}</span></a>`).join('');
+      return `<div class="side-sec">${m.id} · ${esc(m.name.split(':')[0].replace('?', ''))}</div>` +
+        gs.map(g => `<a class="side-game" data-g="${g.id}" href="#/game/${g.id}" data-search="${esc((g.title + ' ' + g.concepts.join(' ') + ' ' + g.tagline).toLowerCase())}"><span class="no">${no2(g)}</span><span>${esc(GT.shortTitle(g))}</span></a>`).join('');
     }).join('');
     sb.innerHTML = `
-      <a class="brand" href="#/"><span class="brand-mark">S</span><span>StratLab<small>Game theory simulations</small></span></a>
-      <input class="side-search" id="sideSearch" type="search" placeholder="Search games or concepts…">
-      <a class="side-link" data-p="home" href="#/"><span class="side-ico">⌂</span>Home</a>
-      <a class="side-link" data-p="course" href="#/course"><span class="side-ico">▦</span>Course map</a>
-      <a class="side-link" data-p="faculty" href="#/faculty"><span class="side-ico">✎</span>Faculty guide</a>
-      <a class="side-link" data-p="results" href="#/results"><span class="side-ico">↧</span>My results</a>
+      <a class="brand" href="#/">${LOGO}<span><b>StratLab</b><small>Strategic Decision Making</small></span></a>
+      <input class="side-search" id="sideSearch" type="search" placeholder="Find a game or concept">
+      <a class="side-link" data-p="home" href="#/">Contents</a>
+      <a class="side-link" data-p="choose" href="#/choose">Which model fits?</a>
+      <a class="side-link" data-p="course" href="#/course">Course map</a>
+      <a class="side-link" data-p="faculty" href="#/faculty">For faculty</a>
+      <a class="side-link" data-p="results" href="#/results">My results</a>
       <div id="sideGames">${mods}</div>
-      <div class="side-foot"><a href="#/about" class="side-link" data-p="about" style="padding:4px 0">About</a><button class="theme-btn" id="themeBtn">☾ Dark</button></div>`;
+      <div class="side-foot"><a href="#/about" class="side-link" data-p="about">About</a><button class="theme-btn" id="themeBtn">Dark mode</button></div>`;
     $('#themeBtn').onclick = () => {
       const next = document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark';
       setTheme(next);
@@ -71,44 +72,28 @@
     $('#scrim').onclick = () => $('#shell').classList.remove('nav-open');
   }
 
-  /* ---------- pages ---------- */
-  function gameCard(g) {
-    return `<a class="card game-card" href="#/game/${g.id}">
-      ${badge(g)}
-      <h3>${esc(GT.shortTitle(g))}</h3>
-      <p>${esc(g.tagline)}</p>
-      <div class="meta"><span style="color:${colorOf(g)}">${g.modules[0]}</span> · Session ${esc(g.sessions)} · ${esc(g.time)}</div>
-    </a>`;
-  }
-
+  /* ---------- home: contents table ---------- */
   function pageHome(root) {
-    const n = GT.games.length;
-    const first = GT.games[0];
-    let mods = '';
+    let rows = '';
     MODULES.forEach(m => {
       const gs = GT.games.filter(g => g.modules[0] === m.id);
       if (!gs.length) return;
-      mods += `<section class="module-block"><div class="module-head"><span class="chip" style="background:${COLORS[m.id]}1a;color:${COLORS[m.id]}">${m.id}</span><h2>${esc(m.name)}</h2><span class="muted">Sessions ${m.sessions}</span></div>
-        <div class="grid">${gs.map(gameCard).join('')}</div></section>`;
+      rows += `<tr class="mod"><td colspan="4"><span class="kicker">Module ${m.id.slice(1)} · Sessions ${m.sessions}</span><h3 style="display:inline">${esc(m.name)}</h3></td></tr>`;
+      rows += gs.map(g => `<tr class="game" data-href="#/game/${g.id}"><td class="no">${no2(g)}</td><td class="t"><a href="#/game/${g.id}">${esc(GT.shortTitle(g))}</a><p>${esc(g.tagline)}</p></td><td class="c">${g.concepts.slice(0, 4).map(esc).join(' · ')}</td><td class="s">S ${esc(g.sessions.replace(/\s*\(.*\)/, ''))}<br>${esc(g.time)}</td></tr>`).join('');
     });
     root.innerHTML = `
-      <section class="hero">
-        <span class="eyebrow">Strategic Decision Making · Game Theory</span>
-        <h1>Learn game theory by playing it</h1>
-        <p class="lead">${n} short simulations, one for each part of the course. Pick a game, read the 3-step quick start, play against the AI, then compare what happened with the theory.</p>
-        <div class="btn-row" style="margin-top:18px">
-          <a class="btn primary" href="#/game/${first.id}">Start with game 1 →</a>
-          <a class="btn" href="#/faculty">I'm running a class</a>
-        </div>
-      </section>
-      <div class="steps-row">
-        <div class="step-tile"><i>1</i><b>Pick a game</b><span>From the list below or the sidebar</span></div>
-        <div class="step-tile"><i>2</i><b>Play</b><span>Against the AI, or live with the class</span></div>
-        <div class="step-tile"><i>3</i><b>Compare</b><span>Your result vs the equilibrium</span></div>
-        <div class="step-tile"><i>4</i><b>Reflect</b><span>Debrief questions and export your log</span></div>
+      <header class="masthead">
+        <div class="kicker">Strategic Decision Making: A Game Theoretic Approach · MBA Term V</div>
+        <h1>StratLab</h1>
+        <p class="lead">Twelve classroom games that follow the session plan. Each one has a simulation, instructions for students and for the instructor, the theory behind it, Indian and international cases, and debrief questions.</p>
+        <div class="btn-row"><a class="btn primary" href="#/game/price-war">Open game 01</a><a class="btn" href="#/choose">Which model fits my problem?</a><a class="btn" href="#/faculty">Running it in class</a></div>
+      </header>
+      <div class="two-col">
+        <div><h4>For students</h4><p>Read the quick start at the top of a game, play a few rounds, and then compare what happened with the equilibrium on the Theory tab. Results are logged in your browser; export them from My results for the WAI submission.</p></div>
+        <div><h4>For faculty</h4><p>Seven games have a classroom mode: collect choices on paper or a form, paste them in, and project the aggregate result. The How to play tab has a timed plan for each session.</p></div>
       </div>
-      <div class="module-block"><div class="module-head"><h2>All simulations</h2><span class="muted">In course order · the sidebar groups them by module</span></div>
-        <div class="grid">${GT.games.map(gameCard).join('')}</div></div>`;
+      <table class="contents"><tbody>${rows}</tbody></table>`;
+    $$('tr.game', root).forEach(tr => tr.addEventListener('click', e => { if (!e.target.closest('a')) location.hash = tr.dataset.href; }));
   }
 
   function pageGames(root) { pageHome(root); }
@@ -125,8 +110,8 @@
       ['CLO 3', 'Evaluate assumptions; when behaviour changes the predictions', 'AI opponents are calibrated to experimental evidence (ultimatum rejections, level-k reasoning, conditional cooperation), so play regularly departs from theory. Debrief questions ask students to explain the gap.']
     ].map(r => `<tr><td><b>${r[0]}</b></td><td>${r[1]}</td><td>${r[2]}</td></tr>`).join('');
     root.innerHTML = `
-      <h1>Course map</h1>
-      <p class="muted" style="max-width:760px">How the simulations line up with the 20-session plan for <i>Strategic Decision Making: A Game Theoretic Approach</i> (Term V). Use it to choose which simulation goes with which class.</p>
+      <div class="page-head"><div class="kicker">Session plan</div><h1>Course map</h1>
+      <p class="lead">How the simulations line up with the 20-session plan for <i>Strategic Decision Making: A Game Theoretic Approach</i> (Term V). Use it to choose which simulation goes with which class.</p></div>
       <div class="card flat tbl-wrap"><table class="data"><thead><tr><th>Module</th><th>Theme</th><th>Sessions</th><th>Simulations</th></tr></thead><tbody>${rows}</tbody></table></div>
       <h2 class="mt" style="margin-top:32px">Mapping to Course Learning Outcomes</h2>
       <div class="card flat tbl-wrap"><table class="data"><thead><tr><th>CLO</th><th>Outcome</th><th>How StratLab supports it</th></tr></thead><tbody>${clo}</tbody></table></div>
@@ -141,16 +126,16 @@
   function pageFaculty(root) {
     root.innerHTML = `
       <div class="prose" style="max-width:920px">
-        <h1>Faculty & facilitator guide</h1>
-        <p class="lead" style="font-size:1.08rem;color:var(--ink-2)">Every simulation can run in two ways. In <b>Solo / AI mode</b> students play against calibrated AI rivals on their laptops or phones. In <b>Classroom mode</b> the faculty projects the page and enters the whole class's responses to show aggregate results live. No logins, installs or backend are needed.</p>
+        <div class="page-head"><div class="kicker">For faculty</div><h1>Running the games in class</h1>
+        <p class="lead">Every simulation can run in two ways. In <b>Solo / AI mode</b> students play against calibrated AI rivals on their laptops or phones. In <b>Classroom mode</b> the faculty projects the page and enters the whole class's responses to show aggregate results live. No logins, installs or backend are needed.</p></div>
 
         <h3>Session template (works for any game)</h3>
         <div class="guide-grid">
           <div class="card flat"><h4>Before class (10 min)</h4><ul><li>Assign the game's <b>How to play</b> tab as a pre-read.</li><li>Optional: students play 1–2 rounds solo, then export their log.</li></ul></div>
           <div class="card flat"><h4>Hook (5 min)</h4><ul><li>Open with the business problem from the session plan. Each game's header states it.</li><li>Take a quick poll: "What would you do?"</li></ul></div>
           <div class="card flat"><h4>Play (15–25 min)</h4><ul><li>Collect choices by show of hands, Google Form, Mentimeter or chat.</li><li>Paste them into the <b>Classroom mode</b> panel on the projector.</li></ul></div>
-          <div class="card flat"><h4>Reveal & theory (15 min)</h4><ul><li>Show the equilibrium using the solver.</li><li>Use the <b>Concepts</b> tab to formalise the result.</li></ul></div>
-          <div class="card flat"><h4>Debrief (10–15 min)</h4><ul><li>Use the debrief questions, from comprehension through to managerial judgement.</li><li>Tie the result to an Indian case from <b>In practice</b>.</li></ul></div>
+          <div class="card flat"><h4>Reveal & theory (15 min)</h4><ul><li>Show the equilibrium using the solver.</li><li>Use the <b>Theory</b> tab to formalise the result.</li></ul></div>
+          <div class="card flat"><h4>Debrief (10–15 min)</h4><ul><li>Use the debrief questions, from comprehension through to managerial judgement.</li><li>Tie the result to an Indian case from <b>Real cases</b>.</li></ul></div>
           <div class="card flat"><h4>After class</h4><ul><li>Students use the <b>Working with AI</b> prompt to extend the analysis.</li><li>They submit the exported results log with a 1-page reflection.</li></ul></div>
         </div>
 
@@ -187,8 +172,8 @@
     const log = GT.readLog().slice().reverse();
     const rows = log.map(r => `<tr><td><small>${new Date(r.t).toLocaleString('en-IN')}</small></td><td>${esc(r.title)}</td><td>${esc(r.summary)}</td></tr>`).join('');
     root.innerHTML = `
-      <h1>My results</h1>
-      <p class="muted" style="max-width:720px">Every completed round or experiment is logged here, in this browser only. Export it as CSV or JSON to attach to your WAI submission or reflection.</p>
+      <div class="page-head"><div class="kicker">Your log</div><h1>My results</h1>
+      <p class="lead">Every completed round or experiment is logged here, in this browser only. Export it as CSV or JSON to attach to your WAI submission or reflection.</p></div>
       <div class="btn-row" style="margin-bottom:14px">
         <button class="btn primary" id="expCsv" ${log.length ? '' : 'disabled'}>Export CSV</button>
         <button class="btn" id="expJson" ${log.length ? '' : 'disabled'}>Export JSON</button>
@@ -207,32 +192,40 @@
   }
 
   function pageAbout(root) {
+    const checks = [
+      ['01 Price War Lab', 'Telecom matrix: both firms have “Cut” as a dominant strategy; unique NE (Cut, Cut) = (350, 350) is Pareto-dominated by (600, 600). Petrol pumps: IEDS removes High, then Mid, leaving (Low, Low).'],
+      ['02 Beauty Contest', 'Guesses above 100p are dominated; level-k anchors 50·pᵏ (33.3, 22.2, 14.8 for p = ⅔); unique NE is 0.'],
+      ['03 Cournot vs Bertrand', 'a = 100, b = 1, c = 10: Cournot q = 30 each, P = 40, profit 900; cartel Q = 45, P = 55; Stackelberg 45 / 22.5. Bertrand price falls to c; with capacity K = 30 it stays at 40 (Kreps–Scheinkman).'],
+      ['04 Audits & Penalty Kicks', 'Audit rate T/(T+F) = 40%, evasion C/T = 30% at the defaults. Penalty kicks: keeper 42.0%, kicker 38.5%, matching Palacios-Huerta (2003).'],
+      ['05 Entry & Commitment', 'Every tree solved by hand: entry (Enter, Accommodate); capacity (Invest, Stay out) = 80 > 50; lawsuit (contingency fee, Cut price); brinkmanship threshold p > 2/11; Maruti threshold p > 0.5.'],
+      ['06 Bargaining Table', 'Rubinstein share (1 − δ₂)/(1 − δ₁δ₂) = 35.7% at δ = 0.8, 0.9; Nash bargaining dₐ + α·surplus = 270 at the defaults.'],
+      ['07 OPEC Cartel', 'Grim trigger needs δ ≥ (T − R)/(T − P) = 0.5 at T = 5. Strategy rules checked against Axelrod (1984) and Nowak & Sigmund (1993).'],
+      ['08 Lemons & Signals', 'Lemons market survives only if k ≥ 2 (uniform quality). Spence separating band (H − L)/c_L ≤ e* ≤ (H − L)/c_H = [2.4, 6]. Insurance menu satisfies both self-selection constraints at the defaults.'],
+      ['09 Auction House', 'First-price bid (n − 1)/n · v; expected revenue 100(n − 1)/(n + 1) = 60 for n = 4, confirmed by simulation; optimal reserve 50.'],
+      ['10 Shapley & Core', 'IT consortium Shapley (245, 210, 345) enumerated over 6 orders and in the Core; glove game (66.7, 16.7, 16.7); airport costs (5, 15, 30, 50); 50/49/1 voting power (⅔, ⅙, ⅙).'],
+      ['11 Matching Market', 'Deferred acceptance output checked for blocking pairs every run; proposer-optimality visible by swapping sides.'],
+      ['12 Climate Club', 'Zero contribution is dominant when MPCR < 1; full contribution is efficient when n·MPCR > 1.']
+    ];
     root.innerHTML = `
-      <div class="prose">
-        <h1>About this project</h1>
-        <p>StratLab is a <b>Working with AI (WAI)</b> project for the Term V elective <i>Strategic Decision Making: A Game Theoretic Approach</i>. It turns the course's session plan into hands-on simulations that students can play alone or that faculty can run live in class.</p>
-        <h3>Design principles</h3>
+      <div class="page-head"><div class="kicker">About</div><h1>About StratLab</h1>
+      <p class="lead">StratLab was built as a Working with AI (WAI) project for the Term V elective <i>Strategic Decision Making: A Game Theoretic Approach</i>. It follows the session plan of the course: each game corresponds to one or more sessions and uses the cases named in the outline where possible.</p></div>
+      <div class="prose" style="max-width:880px">
+        <h3>How it is meant to be used</h3>
+        <p>A student should be able to open a game, read three lines of instructions and start playing. The theory, cases and debrief questions sit in separate tabs so they don't get in the way of the simulation. Faculty can run most games live by collecting the class's choices and pasting them in. Nothing is stored on a server: results stay in the browser until the student exports them.</p>
+        <p>Computer opponents follow published experimental findings rather than perfect rationality. Ultimatum responders reject low offers at the rates reported by Güth et al. and Camerer; the beauty-contest class reasons one to three steps deep as in Nagel (1995); public-goods players are conditional cooperators as in Fischbacher, Gächter and Fehr (2001). The gap between what the model predicts and what happens in play is part of what students are meant to discuss.</p>
+        <h3>How the models were checked</h3>
+        <p>Each solver's output was compared with a hand calculation for the default numbers. The results below are what the site shows when you open each game without changing anything.</p>
+        <div class="tbl-wrap"><table class="data"><thead><tr><th style="width:190px">Game</th><th>Result checked</th></tr></thead><tbody>${checks.map(c => `<tr><td><b>${c[0]}</b></td><td>${c[1]}</td></tr>`).join('')}</tbody></table></div>
+        <h3>Use of AI</h3>
+        <p>An AI assistant (Claude) was used to draft the simulation code, the solvers and parts of the explanatory text. The payoff structures, equilibria and case facts were then checked by hand against the textbooks and sources listed below, and several errors were corrected along the way (for example, the inspection-game payoffs and the dominance threshold in the beauty contest). Case figures are rounded and are for teaching; check current numbers before quoting them in assessed work.</p>
+        <h3>References</h3>
         <ul>
-          <li><b>Business first.</b> Every game opens with the managerial problem from the session plan, not with notation.</li>
-          <li><b>Theory you can check.</b> Each game has a solver (Nash, IEDS, backward induction, Rubinstein, Shapley/Core, Gale–Shapley, revenue equivalence), so students can test their own reasoning.</li>
-          <li><b>Behaviour as well as rationality.</b> AI opponents follow published experimental findings (Nagel 1995; Güth et al. 1982; Fehr & Gächter 2000; Axelrod 1984), so the gap between theory and behaviour shows up in play.</li>
-          <li><b>India and global cases.</b> Jio, OPEC+, IPL auctions, 5G spectrum, JoSAA seat allocation, Tata–SIA, Cars24, CCI cement cartel and more.</li>
-          <li><b>Zero friction.</b> A static website with no login, no install and no data leaving the browser. It works on GitHub Pages or any static host.</li>
-        </ul>
-        <h3>How AI was used</h3>
-        <ul>
-          <li>Generating and stress-testing the payoff structures and checking the equilibria analytically.</li>
-          <li>Writing the simulation code, opponent behaviour models and solvers, which were then verified against hand calculations.</li>
-          <li>Drafting cases and debrief questions, then editing them for accuracy and MBA level.</li>
-        </ul>
-        <h3>Main references</h3>
-        <ul>
-          <li>Dixit, A. K. & Skeath, S. (2015). <i>Games of Strategy</i> (3rd ed.). Norton.</li>
-          <li>Osborne, M. J. (2004). <i>An Introduction to Game Theory</i>. OUP.</li>
+          <li>Dixit, A. K. &amp; Skeath, S. (2015). <i>Games of Strategy</i> (3rd ed.). Norton.</li>
+          <li>Osborne, M. J. (2004). <i>An Introduction to Game Theory</i>. Oxford University Press.</li>
           <li>Ferguson, T. S. (2020). <i>A Course in Game Theory</i>. World Scientific.</li>
-          <li>Nagel (1995) AER; Palacios-Huerta (2003) REStud; Axelrod (1984); Fehr & Gächter (2000) AER; Akerlof (1970) QJE; Spence (1973) QJE; Gale & Shapley (1962); Roth (2015) <i>Who Gets What and Why</i>; Milgrom (2004) <i>Putting Auction Theory to Work</i>; Calvano et al. (2020) AER on algorithmic collusion.</li>
+          <li>Akerlof (1970); Spence (1973); Rothschild &amp; Stiglitz (1976); Rubinstein (1982); Axelrod (1984); Nagel (1995); Fehr &amp; Gächter (2000); Palacios-Huerta (2003); Milinski et al. (2008); Calvano et al. (2020).</li>
+          <li>Gale &amp; Shapley (1962); Shapley (1953); Shapley &amp; Shubik (1954); Littlechild &amp; Owen (1973); Roth (2015) <i>Who Gets What and Why</i>; Milgrom (2004) <i>Putting Auction Theory to Work</i>; Schelling (1960) <i>The Strategy of Conflict</i>.</li>
         </ul>
-        <p class="muted">Simplified numbers are used for teaching. Case figures are approximate and should be checked against current sources before being quoted in assessed work.</p>
       </div>`;
   }
 
@@ -262,7 +255,7 @@
   }
 
   function practiceHTML(g) {
-    return `<div class="grid">${g.practice.map(c => `<div class="case"><span class="chip ${c.tag === 'India' ? 'amber' : c.tag === 'Frontier' ? 'accent' : ''}">${esc(c.tag)}</span><h4>${c.title}</h4><p class="mb0" style="color:var(--ink-2);font-size:.93rem">${c.text}</p></div>`).join('')}</div>`;
+    return `<div class="grid">${g.practice.map(c => `<div class="case"><span class="chip ${c.tag === 'India' ? 'amber' : c.tag === 'Frontier' ? 'accent' : ''}">${esc(c.tag === 'Frontier' ? 'Recent research' : c.tag)}</span><h4>${c.title}</h4><p class="mb0" style="color:var(--ink-2);font-size:.93rem">${c.text}</p></div>`).join('')}</div>`;
   }
 
   function debriefHTML(g) {
@@ -275,6 +268,66 @@
     </div>`;
   }
 
+
+  /* ---------- which model fits? (Sessions 17 & 20) ---------- */
+  const QTREE = {
+    start: { q: 'Can the parties sign binding, enforceable agreements about how the value is shared?', o: [['Yes, contracts can be enforced', 'coop'], ['No, each side acts in its own interest', 'time']] },
+    coop: { q: 'What has to be decided?', o: [['How two parties split a deal', 'R:bargaining'], ['How three or more partners share joint value or costs', 'R:coalition'], ['Who is paired with whom, when prices cannot clear the market', 'R:matching']] },
+    time: { q: 'When a player chooses, has it seen what the others chose?', o: [['No, choices are effectively simultaneous', 'rep'], ['Yes, players move in turn', 'seqinfo']] },
+    rep: { q: 'Is the same interaction repeated, with no known last round?', o: [['No, it is a one-off', 'priv'], ['Yes, between a few rivals', 'R:repeated'], ['Yes, many players contribute to a shared resource', 'R:public-goods']] },
+    priv: { q: 'Does any player hold private information that matters, such as its own valuation?', o: [['Yes, e.g. bidders know only their own value', 'R:auction'], ['No', 'strat']] },
+    strat: { q: 'What do the strategies look like?', o: [['A few discrete options (cut or hold, launch or wait)', 'pure'], ['Continuous quantities or prices', 'R:duopoly'], ['Guessing what others will guess', 'R:beauty-contest']] },
+    pure: { q: 'Is there a stable choice each side can stick to, or does being predictable get exploited?', o: [['There is a stable choice', 'R:price-war'], ['Predictability gets exploited', 'R:mixed']] },
+    seqinfo: { q: 'Does the first mover know something important that the second mover does not?', o: [['Yes (quality, ability, risk)', 'R:information'], ['No, both know the payoffs', 'seq']] },
+    seq: { q: 'What is the main question?', o: [['Whether a threat or commitment is credible; when to enter or invest', 'R:entry'], ['How value is split through offers and counter-offers', 'R:bargaining']] }
+  };
+  const REASON = {
+    'price-war': 'A one-off simultaneous game with discrete choices: write the payoff matrix, look for dominant strategies, then Nash equilibrium.',
+    'beauty-contest': 'Payoffs depend on predicting others\' beliefs. Iterated dominance gives the theory; level-k reasoning describes what people actually do.',
+    duopoly: 'Simultaneous choice of a continuous variable: Cournot if capacity is the commitment, Bertrand if prices adjust easily.',
+    mixed: 'There is no pure-strategy equilibrium, so the solution is a mixed strategy that keeps the opponent indifferent.',
+    entry: 'Draw the game tree and solve it by backward induction. Keep only threats that are credible (subgame perfection).',
+    bargaining: 'Use BATNAs and the Nash bargaining solution for the split; Rubinstein if patience and the timing of offers matter.',
+    repeated: 'Repeated play lets the threat of future punishment support cooperation. Check the critical discount factor.',
+    information: 'Asymmetric information: look for adverse selection first, then signalling or screening as the remedy.',
+    auction: 'A Bayesian game with private values: pick the bidding strategy for the format, and watch for the winner\'s curse if values are common.',
+    coalition: 'A cooperative game: write the characteristic function, compute the Shapley value and test it against the Core.',
+    matching: 'Two-sided matching: look for a stable matching (no blocking pairs), for example by deferred acceptance.',
+    'public-goods': 'An n-player social dilemma: free riding is individually rational, so look at institutions such as sanctions, thresholds or clubs.'
+  };
+  function pageChoose(root) {
+    const path = [];
+    function draw() {
+      const cur = path.length ? path[path.length - 1].to : 'start';
+      const trail = path.map(p => `<li><span class="muted">${esc(QTREE[p.from].q)}</span><br><b>${esc(p.label)}</b></li>`).join('');
+      let body;
+      if (cur.startsWith('R:')) {
+        const g = GT.byId(cur.slice(2));
+        body = `<div class="card result-card"><div class="panel-title">Suggested model</div><h2 style="margin:0 0 8px">${no2(g)} · ${esc(GT.shortTitle(g))}</h2><p>${esc(REASON[g.id])}</p><p class="muted" style="font-size:.88rem">Concepts: ${g.concepts.map(esc).join(', ')}</p><div class="btn-row"><a class="btn primary" href="#/game/${g.id}">Open the game</a><button class="btn" id="chRestart">Start again</button></div></div>`;
+      } else {
+        const n = QTREE[cur];
+        body = `<div class="card"><div class="panel-title">Question ${path.length + 1}</div><h3>${esc(n.q)}</h3><div class="choice-list">${n.o.map((o, i) => `<button class="choice" data-i="${i}">${esc(o[0])}</button>`).join('')}</div>${path.length ? '<button class="btn ghost sm mt" id="chBack">← Back</button>' : ''}</div>`;
+      }
+      root.innerHTML = `<div class="page-head"><div class="kicker">Sessions 17 &amp; 20 · Practitioner's framework</div><h1>Which model fits?</h1><p class="lead">Answer a few questions about the situation and you will be pointed to the model and the simulation that apply. Try it on an example from your internship.</p></div>
+        <div class="layout-2r"><div>${body}</div><div class="card flat"><div class="panel-title">Your answers</div>${trail ? `<ol class="trail">${trail}</ol>` : '<p class="muted mb0">None yet.</p>'}</div></div>
+        <h2 style="margin-top:36px">The same framework as a table</h2>
+        <div class="card flat tbl-wrap"><table class="data"><thead><tr><th>If the situation has…</th><th>Use</th><th>Simulation</th></tr></thead><tbody>
+          <tr><td>Enforceable agreements, 2 parties</td><td>Nash bargaining, BATNA</td><td><a href="#/game/bargaining">Bargaining Table</a></td></tr>
+          <tr><td>Enforceable agreements, 3+ partners</td><td>Characteristic function, Core, Shapley value</td><td><a href="#/game/coalition">Shapley &amp; Core</a></td></tr>
+          <tr><td>Pairing without prices</td><td>Stable matching, deferred acceptance</td><td><a href="#/game/matching">Matching Market</a></td></tr>
+          <tr><td>Simultaneous, one-off, discrete choices</td><td>Dominance, Nash equilibrium (pure or mixed)</td><td><a href="#/game/price-war">Price War Lab</a>, <a href="#/game/mixed">Audits &amp; Penalty Kicks</a></td></tr>
+          <tr><td>Simultaneous, continuous quantities or prices</td><td>Cournot, Bertrand</td><td><a href="#/game/duopoly">Cournot vs Bertrand</a></td></tr>
+          <tr><td>Sequential, full information</td><td>Backward induction, SPNE, commitment, brinkmanship</td><td><a href="#/game/entry">Entry &amp; Commitment</a></td></tr>
+          <tr><td>Repeated interaction</td><td>Trigger strategies, critical discount factor</td><td><a href="#/game/repeated">OPEC Cartel</a>, <a href="#/game/public-goods">Climate Club</a></td></tr>
+          <tr><td>Private information</td><td>Adverse selection, signalling, screening, auctions</td><td><a href="#/game/information">Lemons &amp; Signals</a>, <a href="#/game/auction">Auction House</a></td></tr>
+        </tbody></table></div>`;
+      $$('.choice', root).forEach(b => b.onclick = () => { const o = QTREE[cur].o[+b.dataset.i]; path.push({ from: cur, label: o[0], to: o[1] }); draw(); });
+      const back = $('#chBack', root); if (back) back.onclick = () => { path.pop(); draw(); };
+      const rs = $('#chRestart', root); if (rs) rs.onclick = () => { path.length = 0; draw(); };
+    }
+    draw();
+  }
+
   function pageGame(root, id, tab) {
     const g = GT.byId(id);
     if (!g) { root.innerHTML = '<h1>Not found</h1><p><a href="#/">Back to home</a></p>'; return; }
@@ -283,19 +336,21 @@
     const mod = MODULES.find(m => m.id === g.modules[0]);
     const qs = g.guide.steps.slice(0, 3).map(s => `<li>${s}</li>`).join('');
     root.innerHTML = `
-      <div class="crumb"><a href="#/">Home</a> › ${mod ? esc(mod.id + ' · ' + mod.name) : ''} › Session ${esc(g.sessions)}</div>
-      <div class="game-head">${badge(g)}<h1>${esc(GT.shortTitle(g))}</h1></div>
-      <p class="game-sub">${esc(g.tagline)}</p>
-      <details class="problem"><summary>The business problem · ${esc(g.time)}</summary><p>${g.problem}</p></details>
+      <header class="game-head">
+        <div class="kicker">Game <b>${no2(g)}</b> · ${mod ? esc('Module ' + mod.id.slice(1) + ', ' + mod.name) : ''} · Session ${esc(g.sessions)} · ${esc(g.time)}</div>
+        <h1>${esc(GT.shortTitle(g))}</h1>
+        <p class="game-sub">${esc(g.tagline)}</p>
+        <div class="brief"><span class="kicker">The business problem</span>${g.problem}</div>
+      </header>
       <div class="tabs" role="tablist">
-        <button class="tab" data-t="play">Play</button>
+        <button class="tab" data-t="play">Simulation</button>
         <button class="tab" data-t="guide">How to play</button>
         <button class="tab" data-t="theory">Theory</button>
         <button class="tab" data-t="practice">Real cases</button>
         <button class="tab" data-t="debrief">Debrief</button>
       </div>
       <div id="pane-play">
-        <div class="quickstart" id="qs"><b>Quick start</b><ol>${qs}</ol><button class="x" id="qsx" title="Hide">✕</button></div>
+        <div class="quickstart" id="qs"><b>Quick start</b><ol>${qs}</ol><button class="x" id="qsx">hide</button></div>
         <div id="play-root"></div>
       </div>
       <div id="pane-guide" class="hide">${guideHTML(g)}</div>
@@ -303,8 +358,8 @@
       <div id="pane-practice" class="hide">${practiceHTML(g)}</div>
       <div id="pane-debrief" class="hide">${debriefHTML(g)}</div>
       <nav class="pager">
-        ${prev ? `<a href="#/game/${prev.id}"><small>← Previous</small><span>${esc(GT.shortTitle(prev))}</span></a>` : '<span></span>'}
-        ${next ? `<a href="#/game/${next.id}" style="text-align:right;margin-left:auto"><small>Next →</small><span>${esc(GT.shortTitle(next))}</span></a>` : '<span></span>'}
+        ${prev ? `<a href="#/game/${prev.id}"><small>← Previous game</small><span>${no2(prev)} ${esc(GT.shortTitle(prev))}</span></a>` : '<span></span>'}
+        ${next ? `<a class="next" href="#/game/${next.id}"><small>Next game →</small><span>${no2(next)} ${esc(GT.shortTitle(next))}</span></a>` : '<span></span>'}
       </nav>`;
     let qsHidden = false;
     try { qsHidden = localStorage.getItem('stratlab.qs.' + g.id) === '1'; } catch (e) { }
@@ -340,6 +395,7 @@
     if (page === 'games') pageGames(root);
     else if (page === 'game') pageGame(root, parts[1], parts[2]);
     else if (page === 'course') pageCourse(root);
+    else if (page === 'choose') pageChoose(root);
     else if (page === 'faculty') pageFaculty(root);
     else if (page === 'results') pageResults(root);
     else if (page === 'about') pageAbout(root);

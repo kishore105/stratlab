@@ -134,7 +134,7 @@
           targets.forEach(t => { if (t.c < avg - 3) { const pts = Math.min(3, Math.round((avg - t.c) / 4)); if (pts > 0) { b.earn -= pts; t.p.earn -= 3 * pts; if (t.p === me) received += pts; else t.p.pun += pts; } } });
         });
         punishPending = true;
-        $('#pg-punbox', root).innerHTML = `<div class="note ${received ? 'bad' : ''}"><p>${received ? `⚠ Other countries spent ${received} unit(s) punishing you (−${3 * received} to your earnings) for contributing below the group average.` : 'Nobody punished you this round.'} Now you may punish: each point costs you 1 and cuts the target's earnings by 3.</p></div>
+        $('#pg-punbox', root).innerHTML = `<div class="note ${received ? 'bad' : ''}"><p>${received ? `Other countries spent ${received} unit(s) punishing you (−${3 * received} to your earnings) for contributing below the group average.` : 'Nobody punished you this round.'} Now you may punish: each point costs you 1 and cuts the target's earnings by 3.</p></div>
           ${bots.map((b, i) => `<div class="field-row" style="margin:6px 0"><span>${b.name} contributed <b>${b.hist[r]}</b></span><input type="number" min="0" max="5" value="0" data-pun="${i}" style="width:70px"></div>`).join('')}
           <button class="btn sm primary" id="pg-pundo">Confirm punishment & continue</button>`;
         $('#pg-pundo', root).onclick = () => {
@@ -192,7 +192,7 @@
 
   GT.register({
     id: 'public-goods', num: 12, icon: '🌍', title: 'Climate Club: Collective Action & Free Riding', modules: ['M4', 'M10'], sessions: '12, 20 (SDG 17)', time: '30–40 min',
-    tagline: 'Contribute to a shared climate fund with three AI countries. Watch cooperation decay, then rescue it with peer punishment or a collective-risk threshold.',
+    tagline: 'Four countries, ten rounds, one climate fund. Play it without enforcement, with peer punishment, or with a collective-risk threshold.',
     problem: 'Climate agreements, shared infrastructure and industry standards all need contributions whose benefits everyone shares. Why do countries and firms free-ride, and which institutions (sanctions, thresholds, clubs) keep cooperation alive?',
     concepts: ['Public goods', 'Free riding', 'Conditional cooperation', 'Costly punishment', 'Collective risk', 'SDG 17'],
     render,

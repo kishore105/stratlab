@@ -6,7 +6,7 @@
     if (g <= 1) return 'Nash (≈0)';
     let best = 0, bd = Infinity;
     for (let k = 0; k <= 4; k++) { const d = Math.abs(g - 50 * Math.pow(p, k)); if (d < bd) { bd = d; best = k; } }
-    return g > 50 * Math.pow(p, 0) + 10 ? 'Above 60 (dominated)' : 'Level-' + best;
+    return g > 100 * p ? 'Dominated (above 100p)' : 'Level-' + best;
   }
 
   function botsRound1(n, p) {
@@ -40,7 +40,7 @@
         <div class="stack">
           <div class="card">
             <div class="panel-title">Settings</div>
-            <div class="field"><div class="field-row"><label>Multiplier p</label><span class="val" data-v="p"></span></div><input type="range" data-k="p" min="0.4" max="0.9" step="0.0333" value="0.6667"></div>
+            <div class="field"><label>Multiplier p (target = p × average)</label><select data-k="p"><option value="0.5">1/2</option><option value="0.6666666667" selected>2/3 (classic)</option><option value="0.75">3/4</option><option value="0.9">0.9</option></select></div>
             <div class="field"><div class="field-row"><label>Other players</label><span class="val" data-v="n"></span></div><input type="range" data-k="n" min="9" max="199" step="10" value="39"></div>
             <div class="field"><label>Aggregate</label><select data-k="agg"><option value="mean">Average (Keynes / Nagel)</option><option value="median">Median</option></select></div>
           </div>
@@ -104,10 +104,10 @@
       // levels
       const counts = {};
       guesses.forEach(g => { const l = levelOf(g, p); counts[l] = (counts[l] || 0) + 1; });
-      const order = ['Above 60 (dominated)', 'Level-0', 'Level-1', 'Level-2', 'Level-3', 'Level-4', 'Nash (≈0)'];
+      const order = ['Dominated (above 100p)', 'Level-0', 'Level-1', 'Level-2', 'Level-3', 'Level-4', 'Nash (≈0)'];
       $('#bc-levels', root).innerHTML = `<table class="data"><thead><tr><th>Type</th><th>Anchor</th><th>Share</th></tr></thead><tbody>${order.filter(o => counts[o]).map(o => {
         const k = o.startsWith('Level-') ? +o.slice(6) : null;
-        return `<tr ${you !== null && levelOf(you, p) === o ? 'class="hl"' : ''}><td>${o}</td><td>${k !== null ? fmt(50 * Math.pow(p, k), 1) : o.startsWith('Nash') ? '0' : '> 60'}</td><td>${GT.pct(counts[o] / guesses.length)}</td></tr>`;
+        return `<tr ${you !== null && levelOf(you, p) === o ? 'class="hl"' : ''}><td>${o}</td><td>${k !== null ? fmt(50 * Math.pow(p, k), 1) : o.startsWith('Nash') ? '0' : '> ' + fmt(100 * p, 1)}</td><td>${GT.pct(counts[o] / guesses.length)}</td></tr>`;
       }).join('')}</tbody></table><p class="muted" style="font-size:.82rem;margin-top:6px">Level-k: a level-0 player picks at random (mean 50); level-k best-responds to level-(k−1). Highlighted = your type.</p>`;
       let winners = [];
       guesses.forEach((g, i) => { if (Math.abs(dists[i] - minD) < 1e-9) winners.push(labels ? labels[i] : fmt(g, 1)); });
@@ -132,7 +132,7 @@
       const r = show(all, you, labels);
       const won = r.winners.includes('You');
       rounds.push({ T: r.T, you, A: r.A });
-      $('#bc-msg', root).innerHTML = `<div class="note ${won ? 'good' : ''}"><p>${won ? '🏆 <b>You win this round!</b>' : `Winner: <b>${esc(r.winners.slice(0, 3).join(', '))}</b>, missing the target by ${fmt(r.minD, 2)}.`} Your guess was ${fmt(Math.abs(you - r.T), 1)} away. ${rounds.length === 1 ? 'Theory says everyone should guess 0. Did the simulated class?' : 'The target keeps falling as players learn. That is iterated best response in action.'}</p></div>`;
+      $('#bc-msg', root).innerHTML = `<div class="note ${won ? 'good' : ''}"><p>${won ? '<b>You won this round.</b>' : `Winner: <b>${esc(r.winners.slice(0, 3).join(', '))}</b>, missing the target by ${fmt(r.minD, 2)}.`} Your guess was ${fmt(Math.abs(you - r.T), 1)} away. ${rounds.length === 1 ? 'Theory says everyone should guess 0. Did the simulated class?' : 'The target falls round by round as players respond to the last result.'}</p></div>`;
       $('#bc-round', root).textContent = Math.min(rounds.length + 1, 5);
       drawTrend();
       GT.log('beauty-contest', `Round ${rounds.length}: guessed ${you}, target ${fmt(r.T, 1)}${won ? ' (won)' : ''}`, { p, n, you, target: r.T, avg: r.A });
@@ -150,14 +150,14 @@
       });
       if (guesses.length < 2) { GT.toast('Paste at least two guesses'); return; }
       const r = show(guesses, null, labels);
-      $('#bc-msg', root).innerHTML = `<div class="note good"><p>🏆 <b>Winner${r.winners.length > 1 ? 's' : ''}: ${esc(r.winners.join(', '))}</b> (distance ${fmt(r.minD, 2)}). ${guesses.length} guesses, ${GT.pct(guesses.filter(g => g > 66.7).length / guesses.length)} chose a dominated number above ${fmt(100 * params.p, 0)}, and ${GT.pct(guesses.filter(g => g <= 1).length / guesses.length)} chose the Nash answer.</p></div>`;
+      $('#bc-msg', root).innerHTML = `<div class="note good"><p><b>Winner${r.winners.length > 1 ? 's' : ''}: ${esc(r.winners.join(', '))}</b> (distance ${fmt(r.minD, 2)}). ${guesses.length} guesses, ${GT.pct(guesses.filter(g => g > 100 * params.p).length / guesses.length)} chose a dominated number above ${fmt(100 * params.p, 0)}, and ${GT.pct(guesses.filter(g => g <= 1).length / guesses.length)} chose the Nash answer.</p></div>`;
       GT.log('beauty-contest', `Classroom: ${guesses.length} guesses, target ${fmt(r.T, 1)}`, { p: params.p, guesses });
     };
   }
 
   GT.register({
     id: 'beauty-contest', num: 2, icon: '🎯', title: 'Keynes\' Beauty Contest', modules: ['M2', 'M10'], sessions: '4', time: '20–30 min',
-    tagline: 'Guess ⅔ of the average. Play against a class calibrated on experimental data and watch rationality converge towards zero over rounds.',
+    tagline: 'Everyone picks a number from 0 to 100, and the closest to two-thirds of the average wins. Play against a simulated class, or paste in your own class\'s guesses.',
     problem: 'In financial markets you profit not by picking the "best" stock but by predicting what others will think is best, and what they think others will think. How many levels deep do people actually reason, and what does Nash equilibrium predict?',
     concepts: ['Nash equilibrium', 'Iterated dominance', 'Level-k reasoning', 'Common knowledge', 'Market bubbles'],
     render,

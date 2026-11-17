@@ -18,9 +18,9 @@
           <div class="card" data-pane="cournot">
             <div class="panel-title">Your output decision · Round <span id="du-cr">1</span>/${ROUNDS}</div>
             <div class="field"><label>Rival type</label><select id="du-ctype">
-              <option value="br">Adaptive (best-responds to your last output)</option>
-              <option value="cartel">Cartel-minded (half the monopoly output, punishes overproduction)</option>
-              <option value="leader">Aggressive (Stackelberg leader output)</option>
+              <option value="br">Adaptive (best reply to your last move)</option>
+              <option value="cartel">Cartel-minded (punishes overproduction)</option>
+              <option value="leader">Aggressive (Stackelberg leader)</option>
             </select></div>
             <div class="field"><div class="field-row"><label>Your quantity q₁</label><span class="val" id="du-qv"></span></div><input type="range" id="du-q" min="0" max="90" step="0.5" value="30"></div>
             <div class="btn-row"><button class="btn primary" id="du-cgo">Produce</button><button class="btn" id="du-creset">Restart</button></div>
@@ -219,7 +219,7 @@
 
   GT.register({
     id: 'duopoly', num: 3, icon: '🏭', title: 'Duopoly Lab: Cournot vs Bertrand', modules: ['M2'], sessions: '5', time: '35–45 min',
-    tagline: 'Compete on quantity in steel, then on price in telecom. See reaction functions, the Bertrand paradox, and why capacity changes everything.',
+    tagline: 'Ten rounds choosing output against a rival steel producer, then ten rounds setting prices. Also covers capacity limits and what happens to price as firms enter or exit.',
     problem: 'Two steel producers decide independently how much to produce, and each firm\'s profit depends on both outputs. How do firms reach equilibrium, and at what cost to the industry? Which model fits Indian telecom after Jio\'s entry?',
     concepts: ['Cournot', 'Bertrand paradox', 'Reaction functions', 'Stackelberg', 'Capacity commitment'],
     render,
@@ -240,7 +240,7 @@
       facilitator: [
         'Ask students to write down whether Indian telecom post-Jio is "Cournot" or "Bertrand" before class (the pre-read in Session 5).',
         'Demo Cournot on the projector with the adaptive rival. Mark the Cournot NE on the chart and show how the path spirals into it.',
-        'Run Bertrand live with a volunteer: their price has to stay above cost while the AI undercuts. The collapse to cost is the "aha" moment.',
+        'Run Bertrand live with a volunteer: their price has to stay above cost while the AI undercuts. Most volunteers are surprised by how fast the price reaches cost.',
         'Turn on capacity and discuss: telecom spectrum and network capacity, steel and cement capacity. Capacity commitments soften price competition.',
         'Timing: 10 min Cournot, 10 min Bertrand, 10 min capacity and N-firm, 10 min Jio discussion.'
       ],

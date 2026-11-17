@@ -5,7 +5,7 @@
 
   function render(root) {
     root.innerHTML = `
-      <div class="subtabs"><button class="subtab active" data-sub="buy">Used-car buyer</button><button class="subtab" data-sub="unravel">Market unravelling</button><button class="subtab" data-sub="spence">Job-market signaling</button></div>
+      <div class="subtabs"><button class="subtab active" data-sub="buy">Used-car buyer</button><button class="subtab" data-sub="unravel">Market unravelling</button><button class="subtab" data-sub="spence">Job-market signaling</button><button class="subtab" data-sub="screen">Insurance screening</button></div>
 
       <div data-pane="buy" class="layout-2">
         <div class="stack">
@@ -60,10 +60,26 @@
           <div class="card"><div id="in-sverdict"></div><div id="in-schart"></div></div>
           <div class="card"><div class="panel-title">Separating range</div><div id="in-srange"></div></div>
         </div>
-      </div>`;
+      </div>
+      <div data-pane="screen" class="layout-2 hide">
+        <div class="card">
+          <div class="panel-title">Design a health-insurance menu</div>
+          <p class="muted" style="font-size:.88rem">Each customer faces a ₹1 lakh medical bill (L = 100, in ₹ thousand) with probability 0.4 (high risk) or 0.1 (low risk). Only the customer knows which. Customers dislike risk: every ₹1 of uncovered loss costs them ρ extra on top of its expected value. You offer two plans and let customers choose.</p>
+          <div class="field"><div class="field-row"><label>Full cover: premium</label><span class="val" data-v="iPF"></span></div><input type="range" data-k="iPF" min="0" max="80" step="1" value="43"></div>
+          <div class="field"><div class="field-row"><label>Basic plan: premium</label><span class="val" data-v="iPB"></span></div><input type="range" data-k="iPB" min="0" max="60" step="1" value="14"></div>
+          <div class="field"><div class="field-row"><label>Basic plan: deductible D</label><span class="val" data-v="iD"></span></div><input type="range" data-k="iD" min="0" max="100" step="5" value="50"></div>
+          <div class="field"><div class="field-row"><label>Risk aversion ρ</label><span class="val" data-v="iRho"></span></div><input type="range" data-k="iRho" min="0" max="0.5" step="0.05" value="0.2"></div>
+          <div class="field"><div class="field-row"><label>Share of high-risk customers λ</label><span class="val" data-v="iLam"></span></div><input type="range" data-k="iLam" min="0.05" max="0.95" step="0.05" value="0.3"></div>
+        </div>
+        <div class="stack">
+          <div class="card"><div id="in-scr-table"></div><div id="in-scr-verdict"></div></div>
+          <div class="card"><div class="panel-title">Conditions</div><div id="in-scr-cond"></div></div>
+        </div>
+      </div>
+      `;
 
     let prm;
-    const paint = GT.bindRanges(root, o => { prm = o; drawAll(); }, { k: v => fmt(v, 1), th: v => GT.pct(v), k2: v => fmt(v, 2), th2: v => GT.pct(v), qmin: v => fmt(v, 1), lam: v => fmt(v, 2), es: v => fmt(v, 1) });
+    const paint = GT.bindRanges(root, o => { prm = o; drawAll(); }, { k: v => fmt(v, 1), th: v => GT.pct(v), k2: v => fmt(v, 2), th2: v => GT.pct(v), qmin: v => fmt(v, 1), lam: v => fmt(v, 2), es: v => fmt(v, 1), iRho: v => fmt(v, 2), iLam: v => GT.pct(v) });
     prm = paint();
     GT.subtabs(root, () => drawAll());
 
@@ -73,8 +89,8 @@
     function drawCar() {
       $('#in-n', root).textContent = Math.min(B.hist.length + 1, 12);
       $('#in-car', root).innerHTML = car.cert
-        ? `<div class="note good"><p>🧾 <b>Inspection report available:</b> true quality q = ₹${fmt(car.q, 1)} lakh, so it is worth ₹${fmt(prm.k * car.q, 1)} lakh to you.</p></div>`
-        : `<div class="note amber"><p>🚗 <b>No report.</b> The seller says it is "excellent condition, single owner". Quality could be anything from ₹0 to ₹10 lakh.</p></div>`;
+        ? `<div class="note good"><p><b>Inspection report attached.</b> true quality q = ₹${fmt(car.q, 1)} lakh, so it is worth ₹${fmt(prm.k * car.q, 1)} lakh to you.</p></div>`
+        : `<div class="note amber"><p><b>No report.</b> The seller says it is "excellent condition, single owner". Quality could be anything from ₹0 to ₹10 lakh.</p></div>`;
     }
     function resetBuy() { B = { hist: [], tot: 0 }; $('#in-msg', root).innerHTML = ''; newCar(); drawBuy(); }
     function drawBuy() {
@@ -83,7 +99,7 @@
       $('#in-cnt', root).textContent = bought.length;
       $('#in-aq', root).textContent = bought.length ? fmt(GT.mean(bought.map(h => h.q)), 1) : '–';
       $('#in-ap', root).textContent = bought.length ? fmt(GT.mean(bought.map(h => h.p)), 1) : '–';
-      $('#in-log', root).innerHTML = B.hist.map((h, i) => `<div>#${i + 1} ${h.cert ? '🧾' : '🚗'} offer ₹${fmt(h.p, 1)}L → ${h.ok ? `bought; true q = ₹${fmt(h.q, 1)}L, worth ₹${fmt(prm.k * h.q, 1)}L → <b style="color:${h.profit >= 0 ? 'var(--good)' : 'var(--bad)'}">${h.profit >= 0 ? '+' : ''}${fmt(h.profit, 1)}</b>` : 'seller refused'}</div>`).reverse().join('') || '<div class="muted">No offers yet.</div>';
+      $('#in-log', root).innerHTML = B.hist.map((h, i) => `<div>#${i + 1} ${h.cert ? '[report]' : '[no report]'} offer ₹${fmt(h.p, 1)}L → ${h.ok ? `bought; true q = ₹${fmt(h.q, 1)}L, worth ₹${fmt(prm.k * h.q, 1)}L → <b style="color:${h.profit >= 0 ? 'var(--good)' : 'var(--bad)'}">${h.profit >= 0 ? '+' : ''}${fmt(h.profit, 1)}</b>` : 'seller refused'}</div>`).reverse().join('') || '<div class="muted">No offers yet.</div>';
       $('#in-go', root).disabled = B.hist.length >= 12;
       const pts = [];
       for (let p = 0; p <= 15; p += 0.25) { const pa = Math.min(p, QMAX) / QMAX; const eq = Math.min(p, QMAX) / 2; pts.push([p, pa * (prm.k * eq - p)]); }
@@ -151,18 +167,46 @@
       </svg><div class="formula">Separating iff  (H−L)/c_L ≤ e* ≤ (H−L)/c_H   →   ${fmt(lo, 2)} ≤ e* ≤ ${fmt(hi, 2)}</div><p class="muted" style="font-size:.86rem">${lo < hi ? 'The green band is where the credential sorts types.' : 'No separating threshold exists: the credential must be <b>cheaper</b> for High types (single-crossing condition).'}</p>`;
     }
 
+
+    /* ---------- insurance screening ---------- */
+    function drawScreen() {
+      const L = 100, pH = 0.4, pL = 0.1, PF = prm.iPF, PB = prm.iPB, Dd = prm.iD, rho = prm.iRho, lam = prm.iLam;
+      const types = [{ n: 'High risk', p: pH, share: lam }, { n: 'Low risk', p: pL, share: 1 - lam }];
+      const plans = ['Full cover', 'Basic plan', 'No insurance'];
+      types.forEach(t => {
+        t.cost = [PF, PB + (t.p + rho) * Dd, (t.p + rho) * L];
+        t.pick = t.cost.indexOf(Math.min(...t.cost));
+        t.profit = t.pick === 0 ? PF - t.p * L : t.pick === 1 ? PB - t.p * (L - Dd) : 0;
+      });
+      const avg = GT.sum(types.map(t => t.share * t.profit));
+      $('#in-scr-table', root).innerHTML = `<table class="data"><thead><tr><th>Customer</th>${plans.map(p => `<th>${p}: cost to customer</th>`).join('')}<th>Insurer profit / customer</th></tr></thead><tbody>${types.map(t => `<tr><td><b>${t.n}</b> (${GT.pct(t.share)})</td>${t.cost.map((c, k) => `<td style="${k === t.pick ? 'font-weight:800;background:var(--amber-soft)' : ''}">${fmt(c, 1)}</td>`).join('')}<td>${fmt(t.profit, 1)}</td></tr>`).join('')}<tr><td colspan="4"><b>Average insurer profit per customer</b></td><td><b>${fmt(avg, 1)}</b></td></tr></tbody></table><p class="muted" style="font-size:.8rem;margin-top:6px">Highlighted cell = the plan that customer picks (lowest total cost). Basic plan cost = premium + (p + ρ)·D.</p>`;
+      const [H, Lo] = types;
+      let v, cls;
+      if (H.pick === 0 && Lo.pick === 1) { v = `<b>Separating menu.</b> High-risk customers choose full cover and low-risk customers choose the deductible plan, so the menu sorts them by risk without the insurer ever observing it. ${avg >= 0 ? `It earns ₹${fmt(avg, 1)}k per customer.` : 'But it loses money: raise premiums within the band below.'}`; cls = avg >= 0 ? 'good' : 'amber'; }
+      else if (H.pick === Lo.pick) { v = `<b>Pooling.</b> Both types choose the ${plans[H.pick].toLowerCase()}, so the menu reveals nothing about risk.${H.pick === 0 && H.profit < 0 ? ' Full cover attracts the high-risk customers at a loss.' : ''}`; cls = 'amber'; }
+      else { v = `<b>Inverted or partial sorting.</b> High risk picks the ${plans[H.pick].toLowerCase()}, low risk picks the ${plans[Lo.pick].toLowerCase()}. Check the conditions below.`; cls = 'bad'; }
+      $('#in-scr-verdict', root).innerHTML = `<div class="note ${cls}"><p>${v}</p></div>`;
+      const lo = (pL + rho) * Dd, hi = (pH + rho) * Dd, pbar = (lam * pH + (1 - lam) * pL) * L, lowWTP = (pL + rho) * L;
+      $('#in-scr-cond', root).innerHTML = `<div class="formula">Self-selection: (p_L + ρ)·D ≤ P_full − P_basic ≤ (p_H + ρ)·D
+→ ${fmt(lo, 1)} ≤ ${fmt(PF - PB, 1)} ≤ ${fmt(hi, 1)}   ${PF - PB >= lo && PF - PB <= hi ? '(holds)' : '(fails)'}
+Low-risk participation: P_basic + (p_L + ρ)·D ≤ (p_L + ρ)·L
+→ ${fmt(PB + lo, 1)} ≤ ${fmt(lowWTP, 1)}   ${PB + lo <= lowWTP ? '(holds)' : '(fails)'}</div>
+        <p style="font-size:.88rem;color:var(--ink-2)">The deductible works as a screen because it costs high-risk customers more (they are more likely to pay it). That is the single-crossing condition again. Low-risk customers get less than full cover in exchange for a lower price: the cost of separating them (Rothschild &amp; Stiglitz 1976).</p>
+        <p style="font-size:.88rem;color:var(--ink-2)">For comparison, a single full-cover plan priced at average risk would cost ₹${fmt(pbar, 1)}k. Low-risk customers ${pbar <= lowWTP ? 'would still buy it at this level of risk aversion' : `would refuse it (it is worth only ₹${fmt(lowWTP, 1)}k to them), leaving only high risks in the pool, which is adverse selection`}.</p>`;
+    }
+
     function drawAll() {
       if (!B) return;
-      drawBuy(); drawUnravel(); drawSpence();
+      drawBuy(); drawUnravel(); drawSpence(); drawScreen();
     }
     resetBuy(); drawAll();
   }
 
   GT.register({
     id: 'information', num: 8, icon: '🔍', title: 'Information Lab: Lemons & Signals', modules: ['M6'], sessions: '14', time: '35–45 min',
-    tagline: 'Buy used cars from sellers who know more than you, watch a market unravel, then design a hiring credential that separates talent from noise.',
+    tagline: 'Buy used cars from sellers who know more than you, watch the market unravel, set a hiring credential, and design an insurance menu that sorts customers by risk.',
     problem: 'A job applicant claims excellent skills; a used-car seller claims "single owner, excellent condition". The other side cannot verify this. How do markets fail when information is private, and how do signals, screening and certification repair them? Does an MBA signal productivity or create it?',
-    concepts: ['Asymmetric information', 'Adverse selection', 'Market for lemons', 'Signaling', 'Separating vs pooling', 'Screening'],
+    concepts: ['Asymmetric information', 'Adverse selection', 'Market for lemons', 'Signaling', 'Screening', 'Separating vs pooling'],
     render,
     guide: {
       objective: 'Experience adverse selection as a buyer, model market unravelling, and find the conditions under which a costly signal credibly separates types.',
@@ -176,6 +220,7 @@
         'In <b>Market unravelling</b>, find the k at which the market stops collapsing. Then keep k = 1.5 and raise θ.',
         'In <b>Signaling</b>, find the lowest e* that still separates types. Why is it the efficient choice?',
         'Set c<sub>H</sub> = c<sub>L</sub>. Why can no signal work any more?',
+        'In <b>Insurance screening</b>, keep the default menu and check that each risk type picks a different plan. Then raise the basic-plan premium until low-risk customers drop out.',
         'Answer the debrief: does an MBA signal productivity or create it, and what evidence would tell you which?'
       ],
       facilitator: [

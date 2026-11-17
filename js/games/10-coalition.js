@@ -241,7 +241,7 @@
 
   GT.register({
     id: 'coalition', num: 10, icon: '🧩', title: 'Coalition Lab: Shapley Value & the Core', modules: ['M7'], sessions: '15–17', time: '45–60 min',
-    tagline: 'Split ₹800 crore across an IT consortium, share a highway bid, allocate runway costs, and measure who really controls the boardroom.',
+    tagline: 'Characteristic functions for an IT consortium, a highway bid and a runway cost split. Computes Shapley values, tests the Core and measures voting power.',
     problem: 'A consortium of Infosys, Wipro and a global partner wins a large government IT contract. Each contributed differently. Equal splits seem unfair and proportional splits ignore synergies. What is each firm\'s true marginal contribution, and will the split hold together?',
     concepts: ['Characteristic function', 'Shapley value', 'The Core', 'Fairness vs stability', 'Shapley–Shubik power'],
     render,

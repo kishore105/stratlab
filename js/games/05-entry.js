@@ -38,8 +38,20 @@
         { a: 'Contingency-fee lawyer', to: D(1, 'Supplier', [{ a: 'Cut price', to: L(28, 50) }, { a: 'Refuse', to: D(0, 'Buyer', [{ a: 'Sue', to: L(5, 20) }, { a: 'Back down', to: L(-2, 80) }]) }]) }
       ])
     },
+    brink: {
+      name: 'Brinkmanship: a border standoff', players: ['Country A', 'Country B'], unit: 'utility points (illustrative)', chance: true, pLabel: 'Probability the standoff spirals out of control', p0: 0.3,
+      story: 'Session 13. A wants B to withdraw from a disputed position. A can back down, or escalate in a way that creates a real risk of conflict neither side fully controls (Schelling\'s "threat that leaves something to chance"). Move the slider to change how dangerous escalation is.',
+      build: (p) => D(0, 'Country A', [
+        { a: 'Back down', to: L(-10, 10, 'A loses face') },
+        { a: 'Escalate', to: D(1, 'Country B', [
+          { a: 'Withdraw', to: L(10, -10, 'B loses face') },
+          { a: 'Hold firm', to: D('N', 'Chance', [
+            { a: 'Spirals into conflict', prob: p, to: L(-100, -100, 'Disaster for both') },
+            { a: 'Stays contained', prob: 1 - p, to: L(-15, 10, 'A backs down later') }]) }]) }
+      ])
+    },
     maruti: {
-      name: 'Maruti Suzuki & EVs under uncertainty', players: ['Maruti', 'Rival (Tata Motors)'], unit: '₹ \'000 crore NPV (illustrative)', chance: true,
+      name: 'Maruti Suzuki & EVs under uncertainty', players: ['Maruti', 'Rival (Tata Motors)'], unit: '₹ \'000 crore NPV (illustrative)', chance: true, pLabel: 'Probability EV demand is high', p0: 0.4,
       story: 'Session 11 case. Maruti can invest heavily in EVs early, or wait for demand to become clear. Nature decides whether EV demand turns out High or Low. Move the slider to find the probability at which committing early is better than keeping the option to wait.',
       build: (p) => D(0, 'Maruti', [
         { a: 'Invest early', to: D('N', 'Nature', [
@@ -94,9 +106,9 @@
           <div class="card">
             <div class="field"><label>Scenario</label><select id="en-sc">${Object.entries(SCEN).map(([k, s]) => `<option value="${k}">${esc(s.name)}</option>`).join('')}</select></div>
             <p class="muted" id="en-story" style="font-size:.92rem"></p>
-            <div id="en-pwrap" class="field" style="display:none"><div class="field-row"><label>Probability EV demand is high</label><span class="val" id="en-pv">0.40</span></div><input type="range" id="en-p" min="0" max="1" step="0.01" value="0.4"></div>
+            <div id="en-pwrap" class="field" style="display:none"><div class="field-row"><label id="en-plabel">Probability</label><span class="val" id="en-pv">0.40</span></div><input type="range" id="en-p" min="0" max="1" step="0.01" value="0.4"></div>
             <div style="overflow-x:auto"><div id="en-tree" style="min-width:640px"></div></div>
-            <p class="muted" style="font-size:.8rem">Payoffs shown as (<span style="color:var(--p1);font-weight:700" id="en-p0"></span>, <span style="color:var(--p2);font-weight:700" id="en-p1"></span>). Gold edges = subgame-perfect choices. Dark path = what actually happened in Play mode.</p>
+            <p class="muted" style="font-size:.8rem">Payoffs shown as (<span style="color:var(--p1);font-weight:700" id="en-p0"></span>, <span style="color:var(--p2);font-weight:700" id="en-p1"></span>). Squares are decisions, circles are chance. Highlighted edges are the subgame-perfect choices; the thick blue path is what happened in Play mode.</p>
           </div>
         </div>
         <div class="stack">
@@ -128,6 +140,7 @@
       steps = []; solve(tree, steps); layout(tree);
       $('#en-story', root).textContent = S.story + ' Units: ' + S.unit + '.';
       $('#en-pwrap', root).style.display = S.chance ? '' : 'none';
+      if (S.chance) $('#en-plabel', root).textContent = S.pLabel;
       $('#en-p0', root).textContent = S.players[0]; $('#en-p1', root).textContent = S.players[1];
       $('#en-role', root).innerHTML = S.players.map((p, i) => `<option value="${i}">${esc(p)}</option>`).join('');
     }
@@ -145,24 +158,23 @@
           const c = m.to;
           const isBest = revealed.has(n.id) && n.best === i;
           const isPath = onPath.has(n.id) && onPath.has(c.id);
-          const col = isPath ? 'var(--ink)' : isBest ? 'var(--amber)' : 'var(--line-2)';
-          const sw = isPath ? 4 : isBest ? 4 : 1.6;
-          s += `<line x1="${n.x}" y1="${n.y}" x2="${c.x}" y2="${c.y}" style="stroke:${col};stroke-width:${sw}"/>`;
+          if (isBest) s += `<line x1="${n.x}" y1="${n.y}" x2="${c.x}" y2="${c.y}" style="stroke:var(--hl);stroke-width:11;stroke-linecap:round"/>`;
+          s += `<line x1="${n.x}" y1="${n.y}" x2="${c.x}" y2="${c.y}" style="stroke:${isPath ? 'var(--p1)' : 'var(--ink)'};stroke-width:${isPath ? 3.5 : isBest ? 2 : 1};${isPath || isBest ? '' : 'opacity:.55'}"/>`;
           const mx = (n.x + c.x) / 2, my = (n.y + c.y) / 2;
-          s += `<text x="${mx}" y="${my - 6}" text-anchor="middle" style="font-size:11.5px;font-weight:600;fill:var(--ink-2);paint-order:stroke;stroke:var(--surface);stroke-width:4px">${esc(m.a)}${m.prob !== undefined ? ` (${fmt(m.prob, 2)})` : ''}</text>`;
+          s += `<text x="${mx}" y="${my - 6}" text-anchor="middle" style="font-size:13.5px;font-weight:500;fill:var(--ink);paint-order:stroke;stroke:var(--surface);stroke-width:4px">${esc(m.a)}${m.prob !== undefined ? ` (${fmt(m.prob, 2)})` : ''}</text>`;
         });
       });
       nodes.forEach(n => {
         if (n.pay) {
-          s += `<text x="${n.x + 8}" y="${n.y + 5}" style="font-family:var(--mono);font-size:13px;font-weight:700"><tspan style="fill:var(--p1)">${fmt(n.pay[0])}</tspan><tspan style="fill:var(--muted)">, </tspan><tspan style="fill:var(--p2)">${fmt(n.pay[1])}</tspan></text>`;
-          if (n.label) s += `<text x="${n.x + 8}" y="${n.y + 19}" style="font-size:10px;fill:var(--muted)">${esc(n.label)}</text>`;
+          s += `<text x="${n.x + 8}" y="${n.y + 5}" style="font-family:var(--mono);font-size:15px;font-weight:600"><tspan style="fill:var(--p1)">${fmt(n.pay[0])}</tspan><tspan style="fill:var(--muted)">, </tspan><tspan style="fill:var(--p2)">${fmt(n.pay[1])}</tspan></text>`;
+          if (n.label) s += `<text x="${n.x + 8}" y="${n.y + 19}" style="font-size:11.5px;fill:var(--muted)">${esc(n.label)}</text>`;
           s += `<circle cx="${n.x}" cy="${n.y}" r="3.5" style="fill:var(--ink-2)"/>`;
         } else {
           const col = n.player === 'N' ? 'var(--muted)' : n.player === 0 ? 'var(--p1)' : 'var(--p2)';
-          s += `<circle cx="${n.x}" cy="${n.y}" r="13" style="fill:${col};stroke:var(--surface);stroke-width:2"/>`;
-          s += `<text x="${n.x}" y="${n.y + 4}" text-anchor="middle" style="font-size:11px;font-weight:700;fill:#fff">${n.player === 'N' ? 'N' : n.player + 1}</text>`;
-          s += `<text x="${n.x}" y="${n.y - 19}" text-anchor="middle" style="font-size:11px;font-weight:700;fill:${col}">${esc(n.label)}</text>`;
-          if (revealed.has(n.id)) s += `<text x="${n.x}" y="${n.y + 30}" text-anchor="middle" style="font-family:var(--mono);font-size:10.5px;fill:var(--amber);font-weight:700">(${fmt(n.val[0], 1)}, ${fmt(n.val[1], 1)})</text>`;
+          s += n.player === 'N' ? `<circle cx="${n.x}" cy="${n.y}" r="12" style="fill:var(--surface);stroke:var(--ink);stroke-width:1.5"/>` : `<rect x="${n.x - 12}" y="${n.y - 12}" width="24" height="24" style="fill:${col};stroke:var(--ink);stroke-width:1"/>`;
+          s += `<text x="${n.x}" y="${n.y + 4}" text-anchor="middle" style="font-size:11px;font-weight:700;fill:${n.player === 'N' ? 'var(--ink)' : '#fff'}">${n.player === 'N' ? 'N' : n.player + 1}</text>`;
+          s += `<text x="${n.x}" y="${n.y - 19}" text-anchor="middle" style="font-size:12.5px;font-weight:600;fill:${col}">${esc(n.label)}</text>`;
+          if (revealed.has(n.id)) s += `<text x="${n.x}" y="${n.y + 30}" text-anchor="middle" style="font-family:var(--mono);font-size:10.5px;fill:var(--ink);font-weight:600;paint-order:stroke;stroke:var(--surface);stroke-width:3px">(${fmt(n.val[0], 1)}, ${fmt(n.val[1], 1)})</text>`;
         }
       });
       s += '</svg>';
@@ -183,6 +195,7 @@
       if (key === 'capacity') return '<p class="mb0" style="margin-top:6px">Investing lowers the incumbent\'s payoff in some branches, yet it <b>raises</b> its equilibrium payoff (80 vs 50) because it makes fighting credible. Commitment means deliberately limiting your own options.</p>';
       if (key === 'jio') return '<p class="mb0" style="margin-top:6px">Waiting is dominated once you anticipate the incumbent upgrading first. A large irreversible investment works both as <b>pre-emption</b> and as a <b>commitment</b>.</p>';
       if (key === 'lawsuit') return '<p class="mb0" style="margin-top:6px">With a normal retainer the threat to sue is empty, so the supplier refuses. The contingency-fee contract changes the buyer\'s <i>own</i> payoffs so that suing becomes rational. The supplier sees this and cuts its price. That is a strategic move.</p>';
+      if (key === 'brink') { const p = +$('#en-p', root).value; return `<p class="mb0" style="margin-top:6px">B withdraws only if the risk is high enough: −10 > −110p + 10, i.e. <b>p > 0.18</b> (now p = ${fmt(p, 2)}). ${p > 2 / 11 ? 'So A escalates and B withdraws, and the disaster branch is never reached in equilibrium.' : 'At this level of risk B would hold firm, so A prefers to back down: a small risk is not a usable lever.'} The threat works because it is partly outside A's control. If B misjudges p, both end up facing the disaster branch, which is why brinkmanship is dangerous in practice.</p>`; }
       if (key === 'maruti') { const p = +$('#en-p', root).value; return `<p class="mb0" style="margin-top:6px">Investing early pays 90p − 30 and waiting pays 10 + 10p, so early commitment wins only if <b>p > 0.50</b> (now p = ${fmt(p, 2)}). Below that, the <b>option value of waiting</b> beats first-mover gains.</p>`; }
       return '';
     }
@@ -230,7 +243,7 @@
       $$('.btn', box).forEach(b => b.onclick = () => { cur = cur.moves[+b.dataset.i].to; path.push(cur.id); advance(); });
     }
 
-    $('#en-sc', root).onchange = e => { key = e.target.value; shown = 0; path = []; build(false); draw(); if (!$('[data-pane=play]', root).classList.contains('hide')) startPlay(); };
+    $('#en-sc', root).onchange = e => { key = e.target.value; shown = 0; path = []; if (SCEN[key].chance) { $('#en-p', root).value = SCEN[key].p0; $('#en-pv', root).textContent = fmt(SCEN[key].p0, 2); } build(false); draw(); if (!$('[data-pane=play]', root).classList.contains('hide')) startPlay(); };
     $('#en-p', root).oninput = e => { $('#en-pv', root).textContent = fmt(+e.target.value, 2); build(true); if (shown) shown = steps.length; draw(); };
     $('#en-step', root).onclick = () => { if (shown < steps.length) shown++; draw(); };
     $('#en-all', root).onclick = () => { shown = steps.length; draw(); };
@@ -241,9 +254,9 @@
 
   GT.register({
     id: 'entry', num: 5, icon: '🌳', title: 'Market Entry & Strategic Commitment', modules: ['M3', 'M5'], sessions: '8, 10, 11, 13', time: '40–50 min',
-    tagline: 'Game trees for airline entry, Jio\'s 4G pre-emption, Maruti\'s EV bet and a supplier lawsuit. Separate credible threats from empty ones.',
+    tagline: 'Six game trees: airline entry, capacity commitment, Jio\'s 4G build-out, a supplier lawsuit, a border standoff and Maruti\'s EV timing. Solve them by backward induction or play either side.',
     problem: 'A new airline wants to enter a market dominated by one large carrier, which threatens to slash fares. Should the entrant believe it? When does an irreversible investment (Jio\'s ₹1.5 lakh crore, Maruti\'s EV platform) make a threat or a strategy credible?',
-    concepts: ['Extensive form', 'Backward induction', 'SPNE', 'Credible threats', 'Commitment', 'Option value'],
+    concepts: ['Extensive form', 'Backward induction', 'SPNE', 'Credible threats', 'Commitment', 'Brinkmanship', 'Option value'],
     render,
     guide: {
       objective: 'Draw and solve sequential games by backward induction, distinguish Nash from subgame-perfect equilibria, and see how commitment devices change outcomes.',
@@ -257,6 +270,7 @@
         'Open <b>Jio pre-emption</b>. Change the "Wait → Upgrade first" payoff for Jio from −10 to +40. Does the decision flip?',
         'Open <b>Maruti EVs</b>. Move the probability slider and find the threshold p at which investing early becomes optimal.',
         'Open <b>Supplier lawsuit</b>. Identify the commitment device and explain why the buyer accepts a lower payoff in some branches.',
+        'Open <b>Brinkmanship</b>. Find the risk level at which B withdraws. What happens if B underestimates the risk?',
         'Use <b>Play it</b> as the entrant against the vengeful AI. Did entering still make sense on average?'
       ],
       facilitator: [
@@ -279,6 +293,8 @@
       <div class="formula">SPNE = strategy profile that induces a Nash equilibrium in every subgame</div>
       <h3>Strategic moves and commitment (Schelling)</h3>
       <ul><li><b>Commitment:</b> an unconditional, irreversible first move (capacity, sunk investment, public announcements).</li><li><b>Threat:</b> "If you do X, I will hurt you (and maybe me)." It is credible only if carrying it out is in my interest when the time comes.</li><li><b>Promise:</b> "If you do Y, I will reward you." It is credible only if keeping it is in my interest.</li><li>Ways to make them credible: change your own payoffs (contracts, contingency fees), reduce your options (burn bridges), build reputation, delegate to an agent with different incentives.</li></ul>
+      <h3>Brinkmanship</h3>
+      <p>Schelling's idea: a threat that would be too costly to carry out deliberately can still work if it creates a <b>risk</b> that events get out of hand. The threatener does not choose disaster; it raises the probability p of an outcome neither side controls. In the standoff tree, B withdraws once p is high enough, but if B misjudges p, the disaster branch can actually happen. Examples: trade-war escalation, labour strikes near a deadline, and border standoffs.</p>
       <h3>First-mover advantage and the value of waiting</h3>
       <p>Moving first helps when commitment shapes the rival's response (Stackelberg, pre-emption). Moving second helps when there is uncertainty (you learn before committing) or when imitation is cheap. The Maruti tree makes this trade-off explicit: early commitment is optimal only if the probability of high demand exceeds a threshold. Below it, the <b>option value of waiting</b> wins.</p>`,
     practice: [

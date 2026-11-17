@@ -59,7 +59,7 @@
     const btns = GT.$$('.subtab', root);
     btns.forEach(b => b.addEventListener('click', () => {
       btns.forEach(x => x.classList.toggle('active', x === b));
-      GT.$$('[data-pane]', root).forEach(p => p.classList.toggle('hide', p.dataset.pane !== b.dataset.sub));
+      GT.$$('[data-pane]', root).forEach(p => p.classList.toggle('hide', !p.dataset.pane.split(' ').includes(b.dataset.sub)));
       if (onChange) onChange(b.dataset.sub);
     }));
   };
@@ -68,7 +68,7 @@
   GT.bindRanges = (root, onInput, formatters = {}) => {
     const read = () => {
       const o = {};
-      GT.$$('input[data-k], select[data-k]', root).forEach(i => { o[i.dataset.k] = i.type === 'range' || i.type === 'number' ? parseFloat(i.value) : i.value; });
+      GT.$$('input[data-k], select[data-k]', root).forEach(i => { o[i.dataset.k] = i.type === 'range' || i.type === 'number' ? parseFloat(i.value) : (i.value !== '' && !isNaN(+i.value) ? +i.value : i.value); });
       return o;
     };
     const paint = () => {
@@ -122,9 +122,10 @@
     if (xMax === xMin) xMax = xMin + 1;
     const X = x => m.l + (x - xMin) / (xMax - xMin) * (W - m.l - m.r);
     const Y = y => H - m.b - (y - yMin) / (yMax - yMin) * (H - m.t - m.b);
-    let s = `<svg viewBox="0 0 ${W} ${H}" xmlns="${NS}" role="img">`;
+    const cid = 'clip' + Math.random().toString(36).slice(2, 8);
+    let s = `<svg viewBox="0 0 ${W} ${H}" xmlns="${NS}" role="img"><defs><clipPath id="${cid}"><rect x="${m.l}" y="${m.t - 4}" width="${W - m.l - m.r}" height="${H - m.t - m.b + 4}"/></clipPath></defs>`;
     niceTicks(yMin, yMax, 5).forEach(t => {
-      s += `<line x1="${m.l}" x2="${W - m.r}" y1="${Y(t)}" y2="${Y(t)}" style="stroke:var(--line);stroke-width:1"/>`;
+      s += `<line x1="${m.l}" x2="${W - m.r}" y1="${Y(t)}" y2="${Y(t)}" style="stroke:var(--line-2);stroke-width:.7;stroke-dasharray:1 3"/>`;
       s += `<text x="${m.l - 8}" y="${Y(t) + 4}" text-anchor="end">${GT.fmt(t, Math.abs(t) < 10 && t % 1 ? 2 : 0)}</text>`;
     });
     niceTicks(xMin, xMax, o.xTicks || 6).forEach(t => {
@@ -141,6 +142,7 @@
       s += `<line x1="${X(v.x)}" x2="${X(v.x)}" y1="${m.t}" y2="${H - m.b}" style="stroke:${v.color || 'var(--amber)'};stroke-width:1.5;stroke-dasharray:5 4"/>`;
       if (v.label) s += `<text x="${X(v.x) + 5}" y="${m.t + 10}" style="fill:${v.color || 'var(--amber)'};font-weight:600">${GT.esc(v.label)}</text>`;
     });
+    s += `<g clip-path="url(#${cid})">`;
     o.series.forEach(se => {
       if (!se.points.length) return;
       const d = se.points.map((p, i) => `${i ? 'L' : 'M'}${X(p[0]).toFixed(1)},${Y(p[1]).toFixed(1)}`).join('');
@@ -148,9 +150,11 @@
       if (!se.noLine) s += `<path d="${d}" style="fill:none;stroke:${se.color};stroke-width:${se.width || 2.4};${se.dash ? 'stroke-dasharray:' + se.dash : ''};stroke-linejoin:round;stroke-linecap:round"/>`;
       if (se.dots) se.points.forEach(p => { s += `<circle cx="${X(p[0])}" cy="${Y(p[1])}" r="${se.r || 3.5}" style="fill:${se.color}"/>`; });
     });
+    s += '</g>';
     (o.markers || []).forEach(mk => {
-      s += `<circle cx="${X(mk.x)}" cy="${Y(mk.y)}" r="${mk.r || 6}" style="fill:${mk.color || 'var(--amber)'};stroke:var(--surface);stroke-width:2"/>`;
-      if (mk.label) s += `<text x="${X(mk.x) + 9}" y="${Y(mk.y) - 8}" style="fill:${mk.color || 'var(--amber)'};font-weight:700">${GT.esc(mk.label)}</text>`;
+      const eqm = !mk.color || mk.color === 'var(--amber)';
+      s += `<circle cx="${X(mk.x)}" cy="${Y(mk.y)}" r="${mk.r || 6}" style="fill:${eqm ? 'var(--hl)' : mk.color};stroke:var(--ink);stroke-width:1.5"/>`;
+      if (mk.label) s += `<text x="${X(mk.x) + 10}" y="${Y(mk.y) - 8}" style="fill:var(--ink);font-weight:600;paint-order:stroke;stroke:var(--surface);stroke-width:3px">${GT.esc(mk.label)}</text>`;
     });
     s += '</svg>';
     const legend = o.series.filter(se => se.name).map(se => `<span><i style="background:${se.color}"></i>${GT.esc(se.name)}</span>`).join('');
@@ -167,7 +171,7 @@
     const bw = (W - m.l - m.r) / o.bars.length;
     let s = `<svg viewBox="0 0 ${W} ${H}" xmlns="${NS}" role="img">`;
     niceTicks(yMin, yMax, 5).forEach(t => {
-      s += `<line x1="${m.l}" x2="${W - m.r}" y1="${Y(t)}" y2="${Y(t)}" style="stroke:var(--line)"/>`;
+      s += `<line x1="${m.l}" x2="${W - m.r}" y1="${Y(t)}" y2="${Y(t)}" style="stroke:var(--line-2);stroke-width:.7;stroke-dasharray:1 3"/>`;
       s += `<text x="${m.l - 7}" y="${Y(t) + 4}" text-anchor="end">${GT.fmt(t, t % 1 ? 1 : 0)}</text>`;
     });
     o.bars.forEach((b, i) => {

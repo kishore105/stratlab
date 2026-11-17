@@ -146,7 +146,7 @@
         const w = live[0] || E.bidders.filter(b => !b.you).sort((a, b) => b.v - a.v)[0];
         const rivalMax = Math.max(...E.bidders.filter(b => !b.you).map(b => b.v));
         let msg;
-        if (w && w.you) msg = `<div class="note ${E.you - E.price >= 0 ? 'good' : 'bad'}"><p>🏏 <b>Sold to you at ₹${fmt(E.price, 2)} cr!</b> Your value: ₹${fmt(E.you, 2)} cr, so surplus is <b>${fmt(E.you - E.price, 2)}</b>. The price was set by the last rival to drop (their value ≈ ₹${fmt(rivalMax, 2)} cr), which is the second-highest valuation.</p></div>`;
+        if (w && w.you) msg = `<div class="note ${E.you - E.price >= 0 ? 'good' : 'bad'}"><p><b>Sold to you at ₹${fmt(E.price, 2)} cr.</b> Your value: ₹${fmt(E.you, 2)} cr, so surplus is <b>${fmt(E.you - E.price, 2)}</b>. The price was set by the last rival to drop (their value ≈ ₹${fmt(rivalMax, 2)} cr), which is the second-highest valuation.</p></div>`;
         else msg = `<div class="note"><p>Sold to <b>${w ? w.name : 'a rival'}</b> at ₹${fmt(E.price, 2)} cr. ${E.you > E.price ? `You dropped out too early: your value of ₹${fmt(E.you, 2)} cr was above the final price.` : 'Correct to drop: the price exceeded your value.'}</p></div>`;
         msg += `<p class="muted" style="font-size:.86rem">Dominant strategy in an English auction: stay in until the price reaches your value, then drop. The outcome matches a Vickrey auction.</p>`;
         $('#au-eres', root).innerHTML = msg;
@@ -213,12 +213,12 @@
         const v1 = vs[0], v2 = vs[1];
         fp.push(v1 >= r ? fpBid(v1) : 0);
         const second = v1 >= r ? Math.max(r, v2) : 0;
-        sp.push(second); eng.push(second + (v1 >= r ? GT.rand(0, 0.5) * (v1 > v2 + 0.5 ? 1 : 0) : 0));
+        sp.push(second); eng.push(second); // ascending auction ends when the second-highest value drops out
       }
       const theo = 100 * (n - 1) / (n + 1);
       const out = $('#au-rout', root);
       out.innerHTML = `<div class="panel-title">Average seller revenue (₹ cr)</div><div id="au-rc"></div><div id="au-rh"></div>`;
-      GT.chart.bars($('#au-rc', out), { bars: [{ label: 'First-price', value: GT.mean(fp), color: 'var(--p1)' }, { label: 'Second-price', value: GT.mean(sp), color: 'var(--p2)' }, { label: 'English', value: GT.mean(eng), color: 'var(--accent)' }], decimals: 1, height: 220, hlines: r === 0 ? [{ y: theo, label: `Theory (n−1)/(n+1)×100 = ${fmt(theo, 1)}`, color: 'var(--amber)' }] : [] });
+      GT.chart.bars($('#au-rc', out), { bars: [{ label: 'First-price', value: GT.mean(fp), color: 'var(--p1)' }, { label: 'Second-price', value: GT.mean(sp), color: 'var(--p2)' }, { label: 'English (= 2nd-price)', value: GT.mean(eng), color: 'var(--accent)' }], decimals: 1, height: 220, hlines: r === 0 ? [{ y: theo, label: `Theory (n−1)/(n+1)×100 = ${fmt(theo, 1)}`, color: 'var(--amber)' }] : [] });
       const hf = GT.histogram(fp, 0, 100, 20), hs = GT.histogram(sp, 0, 100, 20);
       GT.chart.line($('#au-rh', out), { series: [{ name: 'First-price revenue distribution', color: 'var(--p1)', points: hf.map(b => [b.lo + 2.5, b.value / T]) }, { name: 'Second-price revenue distribution', color: 'var(--p2)', points: hs.map(b => [b.lo + 2.5, b.value / T]) }], xMin: 0, xMax: 100, yMin: 0, xLabel: 'Revenue', yLabel: 'Share of auctions', height: 220 });
       out.insertAdjacentHTML('beforeend', `<div class="note"><p><b>Revenue equivalence (Vickrey 1961; Myerson 1981).</b> With risk-neutral bidders and independent private values, every standard format gives the <b>same expected revenue</b>. They differ in risk: first-price revenue is less spread out. ${r > 0 ? `A reserve of ₹${r} cr ${r === 50 ? 'is the optimal reserve here (Myerson): it' : ''} raises expected revenue at the cost of sometimes not selling (${GT.pct(Math.pow(r / 100, n))} of the time).` : 'Try a reserve price of 50, the revenue-maximising reserve for U[0,100] values.'}</p></div>`);
@@ -242,7 +242,7 @@
 
   GT.register({
     id: 'auction', num: 9, icon: '🔨', title: 'Auction House: Spectrum, IPL & Oil Blocks', modules: ['M6'], sessions: '14 (auctions)', time: '40–50 min',
-    tagline: 'Bid in first- and second-price spectrum auctions, run a live IPL-style ascending auction, fall into the winner\'s curse, and test revenue equivalence.',
+    tagline: 'Sealed first-price and second-price bids, an ascending IPL-style auction, a common-value oil block, and a revenue comparison across 4,000 simulated auctions.',
     problem: 'The government sells spectrum, coal blocks and oil fields by auction; IPL franchises bid for players; Google sells ads by auction. How should you bid when others\' values are private, and how should a seller design the auction to maximise revenue without cursing the winners?',
     concepts: ['First-price vs Vickrey', 'Bid shading', 'English auction', 'Winner\'s curse', 'Revenue equivalence', 'Reserve price'],
     render,

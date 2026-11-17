@@ -230,7 +230,7 @@
 
   GT.register({
     id: 'bargaining', num: 6, icon: '🤝', title: 'The Bargaining Table', modules: ['M3', 'M9'], sessions: '9, 19', time: '40–60 min',
-    tagline: 'Ultimatum offers against fairness-minded responders, a Rubinstein startup-acquisition negotiation, and a Nash bargaining calculator with BATNA and ZOPA.',
+    tagline: 'Ultimatum offers, alternating offers over the sale of a startup, and a Nash bargaining calculator with BATNAs.',
     problem: 'In wage talks, M&A or JV negotiations, every round of delay destroys value. How does the order of moves decide who gets the bigger share? How much should you offer, and when should you walk away?',
     concepts: ['Ultimatum game', 'SPNE vs behaviour', 'Rubinstein bargaining', 'Patience', 'Nash bargaining', 'BATNA & ZOPA'],
     render,

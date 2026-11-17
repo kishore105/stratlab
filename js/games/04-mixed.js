@@ -130,7 +130,7 @@
     function finish() {
       const avg = GT.mean(hist.map(h => h.u)), f = hist.filter(h => h.i === 0).length / hist.length;
       const ok = avg >= E.vu - Math.abs(E.vu) * 0.05;
-      $('#mx-msg', root).innerHTML = `<div class="note ${ok ? 'good' : 'bad'}"><p><b>${ok ? 'Well mixed.' : 'You were exploited.'}</b> Average ${S.youLabel}: ${fmt(avg, 1)} vs equilibrium ${fmt(E.vu, 1)}. You chose “${esc(S.rows[0])}” ${GT.pct(f)} of the time (equilibrium ${GT.pct(E.p)}). ${ok ? 'An unpredictable, correctly weighted mix cannot be exploited.' : 'The AI detected a bias or pattern in your play and best-responded to it.'}</p></div>`;
+      $('#mx-msg', root).innerHTML = `<div class="note ${ok ? 'good' : 'bad'}"><p><b>${ok ? 'Not exploited.' : 'You were exploited.'}</b> Average ${S.youLabel}: ${fmt(avg, 1)} vs equilibrium ${fmt(E.vu, 1)}. You chose “${esc(S.rows[0])}” ${GT.pct(f)} of the time (equilibrium ${GT.pct(E.p)}). ${ok ? 'An unpredictable, correctly weighted mix cannot be exploited.' : 'The AI detected a bias or pattern in your play and best-responded to it.'}</p></div>`;
       GT.log('mixed', `${key === 'gst' ? 'GST audit' : 'Penalty'}: avg ${fmt(avg, 1)} vs eq ${fmt(E.vu, 1)}, freq ${GT.pct(f)} (eq ${GT.pct(E.p)})`, { scenario: key, prm, hist });
     }
     function drawStats() {
@@ -176,7 +176,7 @@
 
   GT.register({
     id: 'mixed', num: 4, icon: '🎲', title: 'Be Unpredictable: Audits & Penalty Kicks', modules: ['M2'], sessions: '6', time: '25–35 min',
-    tagline: 'Face an AI that hunts for patterns in your play. Learn why the optimal audit rate depends on the penalty, and why evasion doesn\'t.',
+    tagline: 'You decide whether to audit (or which way to dive) for thirty rounds while the computer looks for patterns in your choices.',
     problem: 'A tax authority cannot audit everyone, and a goalkeeper cannot cover both corners. If you are predictable you lose. How unpredictable should you be, and why does a higher penalty reduce audits rather than evasion?',
     concepts: ['Mixed strategy NE', 'Indifference principle', 'Zero-sum games', 'Comparative statics'],
     render,

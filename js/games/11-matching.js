@@ -150,7 +150,7 @@
           if (Object.keys(manual.pairs).length === N) { const mm = new Array(N).fill(-1); Object.entries(manual.pairs).forEach(([a, bb]) => mm[+a] = bb); const bl = blocking(mm); GT.log('matching', `Manual matching: ${bl.length ? bl.length + ' blocking pairs' : 'stable'}`, { pairs: manual.pairs }); }
         });
         const complete = Object.keys(manual.pairs).length === N;
-        $('#mt-verdict', root).innerHTML = complete ? (blocks.length ? `<div class="note bad"><p><b>Unstable.</b> ${blocks.length} blocking pair(s), e.g. ${esc(set.a[blocks[0][0]])} & ${esc(set.b[blocks[0][1]])} both prefer each other to their assigned partners.</p></div>` : `<div class="note good"><p><b>Stable!</b> No pair would rather defect together. ${sameAs() ? `This is the ${sameAs()} matching produced by deferred acceptance.` : 'It differs from both deferred-acceptance outcomes, so this market has more than two stable matchings.'}</p></div>`) : `<p class="muted" style="font-size:.86rem">${Object.keys(manual.pairs).length}/${N} pairs made.</p>`;
+        $('#mt-verdict', root).innerHTML = complete ? (blocks.length ? `<div class="note bad"><p><b>Unstable.</b> ${blocks.length} blocking pair(s), e.g. ${esc(set.a[blocks[0][0]])} & ${esc(set.b[blocks[0][1]])} both prefer each other to their assigned partners.</p></div>` : `<div class="note good"><p><b>Stable.</b> No pair would rather defect together. ${sameAs() ? `This is the ${sameAs()} matching produced by deferred acceptance.` : 'It differs from both deferred-acceptance outcomes, so this market has more than two stable matchings.'}</p></div>`) : `<p class="muted" style="font-size:.86rem">${Object.keys(manual.pairs).length}/${N} pairs made.</p>`;
       } else {
         $('#mt-verdict', root).innerHTML = done ? `<div class="note good"><p><b>Algorithm finished in ${run.res.steps.length} proposals.</b> ${blocks.length ? '' : 'There are no blocking pairs, so the matching is stable (as Gale & Shapley proved it always will be).'} Average rank of partner: ${set.A} ${fmt(avgRank(m, 'A'), 2)}, ${set.B} ${fmt(avgRank(m, 'B'), 2)}.</p></div>` : '';
       }
@@ -197,7 +197,7 @@
 
   GT.register({
     id: 'matching', num: 11, icon: '💞', title: 'Matching Market: Startups, Investors & Campus Placements', modules: ['M8'], sessions: '18', time: '30–40 min',
-    tagline: 'Step through the Gale–Shapley algorithm, try to build a stable matching by hand, and see why the side that proposes wins.',
+    tagline: 'Five startups and five investors. Step through deferred acceptance, try a matching by hand and check it for blocking pairs.',
     problem: 'Startups seek investors, students seek recruiters, students apply to IITs. How do we pair agents with different preferences so that no two parties would rather be matched with each other than with their assigned partners, and who gains from the design?',
     concepts: ['Two-sided matching', 'Stability', 'Blocking pairs', 'Deferred acceptance', 'Market design'],
     render,
