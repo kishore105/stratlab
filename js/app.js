@@ -17,79 +17,101 @@
   ];
   GT.MODULES = MODULES;
 
-  /* ---------- theme ---------- */
+  const COLORS = { M1: '#4f46e5', M2: '#2563eb', M3: '#0891b2', M4: '#059669', M5: '#65a30d', M6: '#d97706', M7: '#db2777', M8: '#9333ea', M9: '#e11d48', M10: '#0d9488' };
+  const SHORT = { 'price-war': 'Price War Lab', 'beauty-contest': 'Beauty Contest', duopoly: 'Cournot vs Bertrand', mixed: 'Audits & Penalty Kicks', entry: 'Entry & Commitment', bargaining: 'Bargaining Table', repeated: 'OPEC Cartel', information: 'Lemons & Signals', auction: 'Auction House', coalition: 'Shapley & Core', matching: 'Matching Market', 'public-goods': 'Climate Club' };
+  const colorOf = g => COLORS[g.modules[0]];
+  const badge = g => `<span class="num-badge" style="background:${colorOf(g)}">${g.num}</span>`;
+  GT.shortTitle = g => SHORT[g.id] || g.title;
+
+  /* ---------- theme (light by default) ---------- */
+  function setTheme(t) {
+    document.documentElement.dataset.theme = t;
+    const b = $('#themeBtn'); if (b) b.textContent = t === 'dark' ? '☀ Light' : '☾ Dark';
+  }
   function initTheme() {
-    let saved = null;
-    try { saved = localStorage.getItem('stratlab.theme'); } catch (e) { }
-    if (saved) document.documentElement.dataset.theme = saved;
-    $('#themeBtn').addEventListener('click', () => {
-      const cur = document.documentElement.dataset.theme || (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
-      const next = cur === 'dark' ? 'light' : 'dark';
-      document.documentElement.dataset.theme = next;
+    let saved = 'light';
+    try { saved = localStorage.getItem('stratlab.theme') || 'light'; } catch (e) { }
+    setTheme(saved);
+  }
+
+  /* ---------- sidebar ---------- */
+  function renderSidebar() {
+    const sb = $('#sidebar');
+    const mods = MODULES.map(m => {
+      const gs = GT.games.filter(g => g.modules[0] === m.id);
+      if (!gs.length) return '';
+      return `<div class="side-sec">${m.id} · ${esc(m.name.split(':')[0])}</div>` +
+        gs.map(g => `<a class="side-game" data-g="${g.id}" href="#/game/${g.id}" data-search="${esc((g.title + ' ' + g.concepts.join(' ') + ' ' + g.tagline).toLowerCase())}">${badge(g)}<span>${esc(GT.shortTitle(g))}</span></a>`).join('');
+    }).join('');
+    sb.innerHTML = `
+      <a class="brand" href="#/"><span class="brand-mark">S</span><span>StratLab<small>Game theory simulations</small></span></a>
+      <input class="side-search" id="sideSearch" type="search" placeholder="Search games or concepts…">
+      <a class="side-link" data-p="home" href="#/"><span class="side-ico">⌂</span>Home</a>
+      <a class="side-link" data-p="course" href="#/course"><span class="side-ico">▦</span>Course map</a>
+      <a class="side-link" data-p="faculty" href="#/faculty"><span class="side-ico">✎</span>Faculty guide</a>
+      <a class="side-link" data-p="results" href="#/results"><span class="side-ico">↧</span>My results</a>
+      <div id="sideGames">${mods}</div>
+      <div class="side-foot"><a href="#/about" class="side-link" data-p="about" style="padding:4px 0">About</a><button class="theme-btn" id="themeBtn">☾ Dark</button></div>`;
+    $('#themeBtn').onclick = () => {
+      const next = document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark';
+      setTheme(next);
       try { localStorage.setItem('stratlab.theme', next); } catch (e) { }
-    });
+    };
+    $('#sideSearch').oninput = e => {
+      const q = e.target.value.trim().toLowerCase();
+      $$('.side-game').forEach(a => a.style.display = !q || a.dataset.search.includes(q) ? '' : 'none');
+      $$('.side-sec').forEach(s => {
+        let n = s.nextElementSibling, any = false;
+        while (n && n.classList.contains('side-game')) { if (n.style.display !== 'none') any = true; n = n.nextElementSibling; }
+        s.style.display = any ? '' : 'none';
+      });
+    };
+    sb.addEventListener('click', e => { if (e.target.closest('a')) $('#shell').classList.remove('nav-open'); });
+    $('#menuBtn').onclick = () => $('#shell').classList.add('nav-open');
+    $('#scrim').onclick = () => $('#shell').classList.remove('nav-open');
   }
 
   /* ---------- pages ---------- */
   function gameCard(g) {
     return `<a class="card game-card" href="#/game/${g.id}">
-      <span class="num">${String(g.num).padStart(2, '0')}</span>
-      <span class="game-icon">${g.icon}</span>
-      <h3>${esc(g.title)}</h3>
+      ${badge(g)}
+      <h3>${esc(GT.shortTitle(g))}</h3>
       <p>${esc(g.tagline)}</p>
-      <div class="chips" style="margin-top:auto;padding-top:6px">
-        <span class="chip accent">Session ${esc(g.sessions)}</span>
-        <span class="chip">${esc(g.time)}</span>
-        ${g.concepts.slice(0, 2).map(c => `<span class="chip">${esc(c)}</span>`).join('')}
-      </div>
+      <div class="meta"><span style="color:${colorOf(g)}">${g.modules[0]}</span> · Session ${esc(g.sessions)} · ${esc(g.time)}</div>
     </a>`;
   }
 
   function pageHome(root) {
     const n = GT.games.length;
+    const first = GT.games[0];
+    let mods = '';
+    MODULES.forEach(m => {
+      const gs = GT.games.filter(g => g.modules[0] === m.id);
+      if (!gs.length) return;
+      mods += `<section class="module-block"><div class="module-head"><span class="chip" style="background:${COLORS[m.id]}1a;color:${COLORS[m.id]}">${m.id}</span><h2>${esc(m.name)}</h2><span class="muted">Sessions ${m.sessions}</span></div>
+        <div class="grid">${gs.map(gameCard).join('')}</div></section>`;
+    });
     root.innerHTML = `
       <section class="hero">
-        <div>
-          <div class="eyebrow">Strategic Decision Making · A Game-Theoretic Approach</div>
-          <h1>Play the theory. Then argue with it.</h1>
-          <p class="lead">${n} interactive simulations covering every module of the course, from the Prisoner's Dilemma in Indian telecom to Shapley values for consortium bids. Each one has an AI opponent, a classroom mode for live sessions, step-by-step guidelines, the theory, real business cases, and debrief questions.</p>
-          <div class="btn-row" style="margin-top:18px">
-            <a class="btn primary" href="#/games">Browse all ${n} games</a>
-            <a class="btn" href="#/course">Course map</a>
-            <a class="btn" href="#/faculty">Faculty guide</a>
-          </div>
-        </div>
-        <div class="hero-card">
-          <div class="panel-title">How each simulation works</div>
-          <ol style="margin:0 0 14px;padding-left:1.2em;color:var(--ink-2)">
-            <li><b>Read the guidelines</b>: objective, your role, rules, time needed.</li>
-            <li><b>Play</b> against AI rivals, or run it live with the class.</li>
-            <li><b>Compare</b> what happened with the equilibrium prediction.</li>
-            <li><b>Debrief</b> with the questions and the Indian and global cases.</li>
-            <li><b>Export</b> your results log for your WAI report.</li>
-          </ol>
-          <div class="stat-row">
-            <div class="stat"><b>${n}</b><span>simulations</span></div>
-            <div class="stat"><b>10</b><span>course modules</span></div>
-            <div class="stat"><b>35+</b><span>real cases</span></div>
-          </div>
+        <span class="eyebrow">Strategic Decision Making · Game Theory</span>
+        <h1>Learn game theory by playing it</h1>
+        <p class="lead">${n} short simulations, one for each part of the course. Pick a game, read the 3-step quick start, play against the AI, then compare what happened with the theory.</p>
+        <div class="btn-row" style="margin-top:18px">
+          <a class="btn primary" href="#/game/${first.id}">Start with game 1 →</a>
+          <a class="btn" href="#/faculty">I'm running a class</a>
         </div>
       </section>
-      <div class="module-head"><h2>Start here</h2><span class="muted">Suggested order follows the session plan</span></div>
-      <div class="grid">${GT.games.map(gameCard).join('')}</div>
-    `;
+      <div class="steps-row">
+        <div class="step-tile"><i>1</i><b>Pick a game</b><span>From the list below or the sidebar</span></div>
+        <div class="step-tile"><i>2</i><b>Play</b><span>Against the AI, or live with the class</span></div>
+        <div class="step-tile"><i>3</i><b>Compare</b><span>Your result vs the equilibrium</span></div>
+        <div class="step-tile"><i>4</i><b>Reflect</b><span>Debrief questions and export your log</span></div>
+      </div>
+      <div class="module-block"><div class="module-head"><h2>All simulations</h2><span class="muted">In course order · the sidebar groups them by module</span></div>
+        <div class="grid">${GT.games.map(gameCard).join('')}</div></div>`;
   }
 
-  function pageGames(root) {
-    let html = `<h1>All simulations</h1><p class="muted">Grouped by course module. Each card opens the game with its guidelines, theory, cases and debrief.</p>`;
-    MODULES.forEach(m => {
-      const gs = GT.games.filter(g => g.modules.includes(m.id));
-      if (!gs.length) return;
-      html += `<div class="module-head"><span class="chip accent">${m.id}</span><h2>${esc(m.name)}</h2><span class="muted">Sessions ${m.sessions}</span></div>
-        <div class="grid">${gs.map(gameCard).join('')}</div>`;
-    });
-    root.innerHTML = html;
-  }
+  function pageGames(root) { pageHome(root); }
 
   function pageCourse(root) {
     const rows = MODULES.map(m => {
@@ -255,39 +277,47 @@
 
   function pageGame(root, id, tab) {
     const g = GT.byId(id);
-    if (!g) { root.innerHTML = '<h1>Not found</h1><p><a href="#/games">Back to games</a></p>'; return; }
+    if (!g) { root.innerHTML = '<h1>Not found</h1><p><a href="#/">Back to home</a></p>'; return; }
     const idx = GT.games.indexOf(g);
     const prev = GT.games[idx - 1], next = GT.games[idx + 1];
+    const mod = MODULES.find(m => m.id === g.modules[0]);
+    const qs = g.guide.steps.slice(0, 3).map(s => `<li>${s}</li>`).join('');
     root.innerHTML = `
-      <div class="crumb"><a href="#/games">Simulations</a> / ${g.modules.map(m => `<span>${m}</span>`).join(' · ')} / Session ${esc(g.sessions)}</div>
-      <div class="game-head">
-        <div>
-          <h1>${g.icon} ${esc(g.title)}</h1>
-          <p>${g.problem}</p>
-        </div>
-        <div class="chips" style="max-width:340px;justify-content:flex-end">
-          ${g.concepts.map(c => `<span class="chip">${esc(c)}</span>`).join('')}
-          <span class="chip amber">${esc(g.time)}</span>
-        </div>
-      </div>
+      <div class="crumb"><a href="#/">Home</a> › ${mod ? esc(mod.id + ' · ' + mod.name) : ''} › Session ${esc(g.sessions)}</div>
+      <div class="game-head">${badge(g)}<h1>${esc(GT.shortTitle(g))}</h1></div>
+      <p class="game-sub">${esc(g.tagline)}</p>
+      <details class="problem"><summary>The business problem · ${esc(g.time)}</summary><p>${g.problem}</p></details>
       <div class="tabs" role="tablist">
-        <button class="tab" data-t="play">▶ Simulate</button>
+        <button class="tab" data-t="play">Play</button>
         <button class="tab" data-t="guide">How to play</button>
-        <button class="tab" data-t="theory">Concepts</button>
-        <button class="tab" data-t="practice">In practice</button>
-        <button class="tab" data-t="debrief">Debrief & AI</button>
+        <button class="tab" data-t="theory">Theory</button>
+        <button class="tab" data-t="practice">Real cases</button>
+        <button class="tab" data-t="debrief">Debrief</button>
       </div>
-      <div id="pane-play"></div>
+      <div id="pane-play">
+        <div class="quickstart" id="qs"><b>Quick start</b><ol>${qs}</ol><button class="x" id="qsx" title="Hide">✕</button></div>
+        <div id="play-root"></div>
+      </div>
       <div id="pane-guide" class="hide">${guideHTML(g)}</div>
-      <div id="pane-theory" class="hide"><div class="prose" style="max-width:920px">${g.theory}</div></div>
+      <div id="pane-theory" class="hide"><div class="prose" style="max-width:900px">${g.theory}</div></div>
       <div id="pane-practice" class="hide">${practiceHTML(g)}</div>
       <div id="pane-debrief" class="hide">${debriefHTML(g)}</div>
-      <hr>
-      <div class="btn-row" style="justify-content:space-between">
-        ${prev ? `<a class="btn ghost" href="#/game/${prev.id}">← ${esc(prev.title)}</a>` : '<span></span>'}
-        ${next ? `<a class="btn ghost" href="#/game/${next.id}">${esc(next.title)} →</a>` : '<span></span>'}
-      </div>`;
-    g.render($('#pane-play'));
+      <nav class="pager">
+        ${prev ? `<a href="#/game/${prev.id}"><small>← Previous</small><span>${esc(GT.shortTitle(prev))}</span></a>` : '<span></span>'}
+        ${next ? `<a href="#/game/${next.id}" style="text-align:right;margin-left:auto"><small>Next →</small><span>${esc(GT.shortTitle(next))}</span></a>` : '<span></span>'}
+      </nav>`;
+    let qsHidden = false;
+    try { qsHidden = localStorage.getItem('stratlab.qs.' + g.id) === '1'; } catch (e) { }
+    if (qsHidden) $('#qs').classList.add('hide');
+    $('#qsx').onclick = () => { $('#qs').classList.add('hide'); try { localStorage.setItem('stratlab.qs.' + g.id, '1'); } catch (e) { } };
+    g.render($('#play-root'));
+    // turn secondary cards into collapsible sections
+    $$('[data-fold]', root).forEach(card => {
+      const d = document.createElement('details'); d.className = 'fold';
+      const s = document.createElement('summary'); s.textContent = card.dataset.fold; d.appendChild(s);
+      while (card.firstChild) d.appendChild(card.firstChild);
+      card.appendChild(d);
+    });
     $('#copyPrompt').onclick = () => GT.copy(g.aiPrompt);
     const show = t => {
       $$('.tab', root).forEach(b => b.classList.toggle('active', b.dataset.t === t));
@@ -305,7 +335,8 @@
     const root = $('#app');
     const parts = (location.hash || '#/').replace(/^#\/?/, '').split('/');
     const page = parts[0] || '';
-    $$('.nav a').forEach(a => a.classList.toggle('active', a.dataset.p === (page === 'game' ? 'games' : page || 'home')));
+    $$('.side-link').forEach(a => a.classList.toggle('active', a.dataset.p === (page || 'home')));
+    $$('.side-game').forEach(a => a.classList.toggle('active', page === 'game' && a.dataset.g === parts[1]));
     if (page === 'games') pageGames(root);
     else if (page === 'game') pageGame(root, parts[1], parts[2]);
     else if (page === 'course') pageCourse(root);
@@ -314,9 +345,10 @@
     else if (page === 'about') pageAbout(root);
     else pageHome(root);
     if (!(page === 'game' && parts[2])) window.scrollTo(0, 0);
-    document.title = page === 'game' && GT.byId(parts[1]) ? `${GT.byId(parts[1]).title} · StratLab` : 'StratLab · Game Theory Simulations';
+    const act = $('.side-game.active'); if (act) act.scrollIntoView({ block: 'nearest' });
+    document.title = page === 'game' && GT.byId(parts[1]) ? `${GT.shortTitle(GT.byId(parts[1]))} · StratLab` : 'StratLab · Game Theory Simulations';
   }
 
   window.addEventListener('hashchange', route);
-  document.addEventListener('DOMContentLoaded', () => { GT.games.sort((a, b) => a.num - b.num); initTheme(); route(); });
+  document.addEventListener('DOMContentLoaded', () => { GT.games.sort((a, b) => a.num - b.num); renderSidebar(); initTheme(); route(); });
 })();

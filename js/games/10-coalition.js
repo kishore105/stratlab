@@ -87,7 +87,7 @@
         <div class="stack">
           <div class="card"><div id="co-result"></div></div>
           <div class="card" id="co-simplex-card"><div class="panel-title">The imputation triangle</div><div id="co-simplex"></div><p class="muted" style="font-size:.82rem">Each point is a way to split v(N). Green dots = Core (no coalition can do better on its own). Gold = Shapley. Blue = your proposal.</p></div>
-          <div class="card"><div class="panel-title">Shapley value, step by step: marginal contributions over every arrival order</div><div id="co-orders" class="scroll-y tbl-wrap"></div></div>
+          <div class="card" data-fold="Step by step: marginal contributions in every arrival order"><div id="co-orders" class="scroll-y tbl-wrap"></div></div>
         </div>
       </div>
       <div data-pane="vote" class="layout-2 hide">

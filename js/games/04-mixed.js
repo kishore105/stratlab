@@ -64,7 +64,7 @@
             <div id="mx-chart" class="mt"></div>
             <div id="mx-msg"></div>
           </div>
-          <div class="card" id="mx-cs-card"><div class="panel-title">Comparative statics: what happens if the penalty rises?</div><div id="mx-cs"></div></div>
+          <div class="card" id="mx-cs-card" data-fold="What if the penalty rises? (comparative statics)"><div id="mx-cs"></div></div>
         </div>
       </div>`;
 

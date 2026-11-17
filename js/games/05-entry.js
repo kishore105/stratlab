@@ -112,7 +112,7 @@
             <div id="en-play"></div>
             <button class="btn sm mt" id="en-restart">Restart</button>
           </div>
-          <div class="card"><div class="panel-title">Edit payoffs</div><div id="en-edit" class="scroll-y"></div></div>
+          <div class="card" data-fold="Edit payoffs"><div id="en-edit" class="scroll-y"></div></div>
         </div>
       </div>`;
 

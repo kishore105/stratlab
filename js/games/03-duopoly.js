@@ -38,7 +38,7 @@
             <div class="field"><div class="field-row"><label>Firms N</label><span class="val" id="du-nv">2</span></div><input type="range" id="du-n" min="1" max="12" step="1" value="2"></div>
             <p class="muted" style="font-size:.86rem">Watch price fall towards marginal cost as firms enter. Moving from 4 to 3 operators after consolidation pushes it the other way.</p>
           </div>
-          <div class="card"><div class="panel-title">Benchmarks</div><div id="du-bench"></div></div>
+          <div class="card" data-fold="Benchmarks: cartel vs Cournot vs Bertrand"><div id="du-bench"></div></div>
         </div>
         <div class="stack">
           <div class="card" data-pane="cournot">

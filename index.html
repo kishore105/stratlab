@@ -1,33 +1,28 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" data-theme="light">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>StratLab · Game Theory Simulations</title>
   <meta name="description" content="Interactive game theory simulations for MBA students: Nash equilibrium, sequential games, repeated games, bargaining, auctions, signaling, Shapley value and matching.">
-  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='7' fill='%23161b26'/><text x='16' y='23' font-size='19' text-anchor='middle' fill='white' font-family='Georgia'>S</text></svg>">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='8' fill='%234f46e5'/><text x='16' y='22' font-size='17' font-weight='800' text-anchor='middle' fill='white' font-family='Arial'>S</text></svg>">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
-  <header class="topbar">
-    <div class="topbar-inner">
-      <a class="brand" href="#/"><span class="brand-mark">S</span> StratLab <small class="muted">Game Theory Simulation Studio</small></a>
-      <nav class="nav">
-        <a href="#/" data-p="home">Home</a>
-        <a href="#/games" data-p="games">Simulations</a>
-        <a href="#/course" data-p="course">Course map</a>
-        <a href="#/faculty" data-p="faculty">Faculty guide</a>
-        <a href="#/results" data-p="results">My results</a>
-        <a href="#/about" data-p="about">About</a>
-      </nav>
-      <button class="theme-btn" id="themeBtn" title="Toggle dark mode" aria-label="Toggle dark mode">◐</button>
+  <div class="shell" id="shell">
+    <aside class="sidebar" id="sidebar"></aside>
+    <div class="scrim" id="scrim"></div>
+    <div class="main">
+      <div class="mobilebar">
+        <button class="menu-btn" id="menuBtn" aria-label="Open menu">☰</button>
+        <a class="brand" href="#/" style="padding:0"><span class="brand-mark">S</span> StratLab</a>
+      </div>
+      <main class="wrap" id="app"></main>
     </div>
-  </header>
-  <main class="wrap" id="app"></main>
-  <footer class="footer">StratLab · Built as a Working-with-AI project for <i>Strategic Decision Making: A Game Theoretic Approach</i> · Teaching models use simplified numbers</footer>
+  </div>
 
   <script src="js/core.js"></script>
   <script src="js/games/01-price-war.js"></script>
