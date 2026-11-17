@@ -299,3 +299,12 @@ table.data tr.hl td { background: var(--hl-soft); }
 .hide { display: none !important; }
 .toast { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); background: var(--ink); color: var(--brand-ink); padding: 8px 14px; font-size: .86rem; z-index: 100; }
 @media print { .sidebar, .mobilebar, .tabs, .btn, .quickstart { display: none !important; } .shell { display: block; } body { background: #fff; } }
+
+/* student details dialog + sidebar line */
+.who { margin: 0 22px 12px; font-size: .84rem; color: var(--ink-2); line-height: 1.45; }
+.who .kicker { display: block; margin-bottom: 1px; }
+.modal-back { position: fixed; inset: 0; z-index: 200; background: rgba(21, 23, 27, .45); display: grid; place-items: center; padding: 16px; }
+.modal { background: var(--surface); border-top: 4px solid var(--ink); max-width: 460px; width: 100%; padding: 22px 24px; }
+.modal p { font-size: .9rem; color: var(--ink-2); }
+.modal input[type="text"] { width: 100%; font-size: 1rem; padding: 8px 10px; }
+.idErr { color: var(--bad); font-size: .85rem; min-height: 1.2em; margin: 0 0 10px; }

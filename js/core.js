@@ -83,10 +83,42 @@
   /* ---------- results log (per browser) ---------- */
   const LOG_KEY = 'stratlab.results.v1';
   GT.readLog = () => { try { return JSON.parse(localStorage.getItem(LOG_KEY) || '[]'); } catch (e) { return []; } };
+  const saveLog = all => { try { localStorage.setItem(LOG_KEY, JSON.stringify(all.slice(-500))); } catch (e) { /* storage unavailable */ } };
+
+  /* ---------- student identity + Google Sheet sync ---------- */
+  const ID_KEY = 'stratlab.student.v1';
+  const CFG = window.STRATLAB_CONFIG || {};
+  GT.sheetOn = () => /^https:\/\/script\.google\.com\/macros\/s\/[^/]+\/exec$/.test((CFG.sheetUrl || '').trim());
+  GT.identity = () => { try { const v = JSON.parse(localStorage.getItem(ID_KEY) || 'null'); return v && v.name && v.roll ? v : null; } catch (e) { return null; } };
+  GT.setIdentity = (name, roll) => { try { localStorage.setItem(ID_KEY, JSON.stringify({ name, roll })); } catch (e) { } };
+  GT.clearIdentity = () => { try { localStorage.removeItem(ID_KEY); } catch (e) { } };
+
+  function markSent(id) {
+    const all = GT.readLog(); const r = all.find(x => x.id === id);
+    if (r) { r.sent = true; saveLog(all); }
+  }
+  GT.send = rec => {
+    const who = GT.identity();
+    if (!GT.sheetOn() || !who || rec.sent) return Promise.resolve(false);
+    let data = '';
+    try { data = JSON.stringify(rec.data || {}); } catch (e) { data = ''; }
+    const payload = { id: rec.id, t: rec.t, roll: who.roll, name: who.name, game: rec.game, title: rec.title, summary: rec.summary, data: data.slice(0, 5000) };
+    // text/plain + no-cors avoids a CORS preflight, which Apps Script web apps do not answer
+    return fetch(CFG.sheetUrl.trim(), { method: 'POST', mode: 'no-cors', keepalive: true, headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(payload) })
+      .then(() => { markSent(rec.id); return true; })
+      .catch(() => false);
+  };
+  GT.resendUnsent = async () => {
+    let n = 0;
+    for (const r of GT.readLog().filter(r => !r.sent)) { if (await GT.send(r)) n++; }
+    return n;
+  };
+
   GT.log = (gameId, summary, data) => {
     const g = GT.byId(gameId);
-    const rec = { t: new Date().toISOString(), game: gameId, title: g ? g.title : gameId, summary, data: data || {} };
-    try { const all = GT.readLog(); all.push(rec); localStorage.setItem(LOG_KEY, JSON.stringify(all.slice(-500))); } catch (e) { /* storage unavailable */ }
+    const rec = { id: Date.now().toString(36) + Math.random().toString(36).slice(2, 7), t: new Date().toISOString(), game: gameId, title: g ? g.title : gameId, summary, data: data || {} };
+    const all = GT.readLog(); all.push(rec); saveLog(all);
+    GT.send(rec);
     return rec;
   };
   GT.clearLog = () => { try { localStorage.removeItem(LOG_KEY); } catch (e) { } };

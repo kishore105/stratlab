@@ -41,3 +41,6 @@ Alternative with zero setup: drag the folder onto https://app.netlify.com/drop f
 ## Notes
 - Results are logged in each user's browser (localStorage) and can be exported as CSV or JSON from **My results**. No data leaves the browser.
 - Case figures are approximate and meant for teaching. Verify them before quoting in assessed work.
+
+## Collecting results centrally
+See [GOOGLE-SHEET-SETUP.md](GOOGLE-SHEET-SETUP.md) to send every finished game (with name and roll number) to a Google Sheet you own.

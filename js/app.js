@@ -35,6 +35,47 @@
   }
 
   /* ---------- sidebar: a table of contents ---------- */
+  /* ---------- student details (name + roll number) ---------- */
+  GT.askIdentity = (onDone) => {
+    if ($('.modal-back')) return;
+    const cur = GT.identity() || { name: '', roll: '' };
+    const wrap = document.createElement('div');
+    wrap.className = 'modal-back';
+    wrap.innerHTML = `<div class="modal" role="dialog" aria-modal="true" aria-labelledby="idTitle">
+      <div class="kicker">Before you play</div>
+      <h2 id="idTitle">Your name and roll number</h2>
+      <p>When you finish a game, your name, roll number and result are sent to the course's Google Sheet, which only the course team can open. Nothing else is recorded.</p>
+      <div class="field"><label for="idName">Full name</label><input type="text" id="idName" maxlength="60" autocomplete="name" value="${esc(cur.name)}"></div>
+      <div class="field"><label for="idRoll">Roll number</label><input type="text" id="idRoll" maxlength="20" autocomplete="off" value="${esc(cur.roll)}"></div>
+      <p class="idErr" id="idErr"></p>
+      <div class="btn-row"><button class="btn primary" id="idSave">Save and continue</button><button class="btn ghost" id="idSkip">Play without sending results</button></div>
+    </div>`;
+    document.body.appendChild(wrap);
+    const close = () => { wrap.remove(); paintWho(); if (onDone) onDone(); };
+    $('#idName').focus();
+    $('#idSave').onclick = () => {
+      const name = $('#idName').value.trim().replace(/\s+/g, ' ');
+      const roll = $('#idRoll').value.trim().toUpperCase();
+      if (!/^[\p{L} .'-]{2,60}$/u.test(name)) { $('#idErr').textContent = 'Enter your full name (letters only).'; return; }
+      if (!/^[A-Z0-9/_-]{2,20}$/.test(roll)) { $('#idErr').textContent = 'Enter your roll number (letters, digits, / - _ only).'; return; }
+      GT.setIdentity(name, roll);
+      GT.resendUnsent();
+      close();
+    };
+    $('#idSkip').onclick = () => { try { sessionStorage.setItem('stratlab.skipId', '1'); } catch (e) { } close(); };
+    wrap.addEventListener('keydown', e => { if (e.key === 'Enter') $('#idSave').click(); if (e.key === 'Escape') $('#idSkip').click(); });
+  };
+  function paintWho() {
+    const box = $('#whoBox'); if (!box) return;
+    if (!GT.sheetOn()) { box.innerHTML = ''; box.style.display = 'none'; return; }
+    box.style.display = '';
+    const w = GT.identity();
+    box.innerHTML = w ? `<span class="kicker">Playing as</span><b>${esc(w.name)}</b> <span class="mono">${esc(w.roll)}</span> · <a href="#" id="whoEdit">change</a>`
+      : `<span class="kicker">Results not being sent</span><a href="#" id="whoEdit">Add name and roll number</a>`;
+    $('#whoEdit').onclick = e => { e.preventDefault(); GT.askIdentity(); };
+  }
+  GT.paintWho = paintWho;
+
   function renderSidebar() {
     const sb = $('#sidebar');
     const mods = MODULES.map(m => {
@@ -45,6 +86,7 @@
     }).join('');
     sb.innerHTML = `
       <a class="brand" href="#/">${LOGO}<span><b>StratLab</b><small>Strategic Decision Making</small></span></a>
+      <div class="who" id="whoBox"></div>
       <input class="side-search" id="sideSearch" type="search" placeholder="Find a game or concept">
       <a class="side-link" data-p="home" href="#/">Contents</a>
       <a class="side-link" data-p="choose" href="#/choose">Which model fits?</a>
@@ -53,6 +95,7 @@
       <a class="side-link" data-p="results" href="#/results">My results</a>
       <div id="sideGames">${mods}</div>
       <div class="side-foot"><a href="#/about" class="side-link" data-p="about">About</a><button class="theme-btn" id="themeBtn">Dark mode</button></div>`;
+    paintWho();
     $('#themeBtn').onclick = () => {
       const next = document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark';
       setTheme(next);
@@ -168,19 +211,29 @@
       </div>`;
   }
 
+  function syncPanel(log) {
+    if (!GT.sheetOn()) return '';
+    const w = GT.identity(), unsent = log.filter(r => !r.sent).length;
+    if (!w) return `<div class="note amber"><p><b>Your results are not being sent.</b> Add your name and roll number so the course team receives them.</p><div class="btn-row"><button class="btn primary sm" id="changeId">Add name and roll number</button></div></div>`;
+    return `<div class="note good"><p><b>Sending results as ${esc(w.name)} (${esc(w.roll)}).</b> ${log.length - unsent} of ${log.length} result(s) sent from this browser.</p><div class="btn-row">${unsent ? `<button class="btn primary sm" id="resend">Send ${unsent} unsent result(s)</button>` : ''}<button class="btn sm" id="changeId">Change name or roll number</button></div></div>`;
+  }
+
   function pageResults(root) {
     const log = GT.readLog().slice().reverse();
-    const rows = log.map(r => `<tr><td><small>${new Date(r.t).toLocaleString('en-IN')}</small></td><td>${esc(r.title)}</td><td>${esc(r.summary)}</td></tr>`).join('');
+    const rows = log.map(r => `<tr><td><small>${new Date(r.t).toLocaleString('en-IN')}</small></td><td>${esc(r.title)}</td><td>${esc(r.summary)}</td>${GT.sheetOn() ? `<td>${r.sent ? 'yes' : '<span class="muted">no</span>'}</td>` : ''}</tr>`).join('');
     root.innerHTML = `
       <div class="page-head"><div class="kicker">Your log</div><h1>My results</h1>
-      <p class="lead">Every completed round or experiment is logged here, in this browser only. Export it as CSV or JSON to attach to your WAI submission or reflection.</p></div>
+      <p class="lead">Every completed game is logged here. ${GT.sheetOn() ? 'If you have entered your name and roll number, each result is also sent to the course sheet.' : 'This copy of the site is not connected to a course sheet, so results stay in this browser. Export them as CSV or JSON to submit.'}</p></div>
+      ${syncPanel(log)}
       <div class="btn-row" style="margin-bottom:14px">
         <button class="btn primary" id="expCsv" ${log.length ? '' : 'disabled'}>Export CSV</button>
         <button class="btn" id="expJson" ${log.length ? '' : 'disabled'}>Export JSON</button>
         <button class="btn ghost" id="clr" ${log.length ? '' : 'disabled'}>Clear log</button>
         <span class="muted">${log.length} entries</span>
       </div>
-      <div class="card flat tbl-wrap">${log.length ? `<table class="data"><thead><tr><th>When</th><th>Game</th><th>Result</th></tr></thead><tbody>${rows}</tbody></table>` : '<p class="muted mb0">Nothing logged yet. Play any simulation and your results will appear here.</p>'}</div>`;
+      <div class="card flat tbl-wrap">${log.length ? `<table class="data"><thead><tr><th>When</th><th>Game</th><th>Result</th>${GT.sheetOn() ? '<th>Sent</th>' : ''}</tr></thead><tbody>${rows}</tbody></table>` : '<p class="muted mb0">Nothing logged yet. Play any simulation and your results will appear here.</p>'}</div>`;
+    const rs = $('#resend'); if (rs) rs.onclick = async () => { rs.disabled = true; rs.textContent = 'Sending…'; const n = await GT.resendUnsent(); GT.toast(n + ' result(s) sent'); pageResults(root); };
+    const ch = $('#changeId'); if (ch) ch.onclick = () => GT.askIdentity(() => pageResults(root));
     if (!log.length) return;
     $('#expCsv').onclick = () => {
       const q = s => '"' + String(s).replace(/"/g, '""') + '"';
@@ -366,6 +419,8 @@
     if (qsHidden) $('#qs').classList.add('hide');
     $('#qsx').onclick = () => { $('#qs').classList.add('hide'); try { localStorage.setItem('stratlab.qs.' + g.id, '1'); } catch (e) { } };
     g.render($('#play-root'));
+    let skipped = false; try { skipped = sessionStorage.getItem('stratlab.skipId') === '1'; } catch (e) { }
+    if (GT.sheetOn() && !GT.identity() && !skipped) GT.askIdentity();
     // turn secondary cards into collapsible sections
     $$('[data-fold]', root).forEach(card => {
       const d = document.createElement('details'); d.className = 'fold';
