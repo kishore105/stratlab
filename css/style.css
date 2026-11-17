@@ -308,3 +308,11 @@ table.data tr.hl td { background: var(--hl-soft); }
 .modal p { font-size: .9rem; color: var(--ink-2); }
 .modal input[type="text"] { width: 100%; font-size: 1rem; padding: 8px 10px; }
 .idErr { color: var(--bad); font-size: .85rem; min-height: 1.2em; margin: 0 0 10px; }
+.modal-back.launch { background: var(--bg); }
+.modal-back.launch .modal { border: 1px solid var(--line); border-top: 4px solid var(--ink); }
+.launch-brand { display: flex; gap: 12px; align-items: center; padding-bottom: 14px; margin-bottom: 14px; border-bottom: 1px solid var(--line); color: var(--ink); }
+.launch-brand .brand-mark { width: 36px; height: 36px; }
+.launch-brand b { font-family: var(--cond); font-size: 1.4rem; display: block; line-height: 1.1; }
+.launch-brand small { display: block; font-size: .76rem; color: var(--muted); }
+.modal .guest { margin: 14px 0 0; padding-top: 12px; border-top: 1px solid var(--line); font-size: .82rem; }
+body.modal-open { overflow: hidden; }

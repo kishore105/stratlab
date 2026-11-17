@@ -1,6 +1,6 @@
 # Collecting results in a Google Sheet
 
-When this is set up, students enter their name and roll number once. After that, every game they finish adds a row to a Google Sheet that you own.
+When this is set up, students sign in with their name and roll number when they open the site (faculty and visitors can continue as guests, whose results are not recorded). A "sign out" link in the sidebar is there for shared computers. After that, every game they finish adds a row to a Google Sheet that you own.
 Until it is set up, the site works as before and results stay in each student's browser.
 
 ## 1. Create the Sheet (5 minutes, done once)
