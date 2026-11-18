@@ -1,11 +1,11 @@
 # StratLab: Game Theory Simulation Studio
 
 A WAI (Working with AI) project for **Strategic Decision Making: A Game Theoretic Approach** (MBA Term V).
-It contains 12 interactive simulations mapped to the 20-session plan. Each one has an AI opponent, a classroom mode, guidelines, theory, Indian and global cases, debrief questions and an AI extension prompt.
+It contains 14 interactive simulations mapped to the 20-session plan. Each one has guidelines, theory, Indian and global cases, debrief questions and an AI extension prompt. Seven also have a classroom mode.
 
 | # | Simulation | Module / Session | Core concepts |
 |---|---|---|---|
-| 1 | Price War Matrix Lab | M1–M2 · S1–4, 7 | Classifying games, normal form, dominance, IEDS, Nash, PD/coordination/chicken |
+| 1 | Price War Matrix Lab | M1–M2 · S1–4, 7 | Classifying games, normal form, dominance, IEDS, Nash, zero-sum saddle points, PD/coordination/chicken |
 | 2 | Keynes' Beauty Contest | M2 · S4 | Iterated dominance, level-k, bubbles |
 | 3 | Duopoly Lab: Cournot vs Bertrand | M2 · S5 | Reaction functions, Bertrand paradox, capacity, N firms |
 | 4 | Audits & Penalty Kicks | M2 · S6 | Mixed-strategy NE, indifference, inspection game |
@@ -17,8 +17,10 @@ It contains 12 interactive simulations mapped to the 20-session plan. Each one h
 | 10 | Coalition Lab | M7 · S15–17 | Shapley value, Core, airport cost game, Shapley–Shubik power |
 | 11 | Matching Market | M8 · S18 | Gale–Shapley, stability, blocking pairs |
 | 12 | Climate Club | M4, M10 · SDG 17 | Public goods, conditional cooperation, punishment, thresholds |
+| 13 | Rollback Lab | M3 · S8–9 | Centipede game, Nim, tree-to-matrix conversion, Nash vs subgame perfect equilibria |
+| 14 | Hidden Types | M6 · S14 | Bayesian games, types and beliefs, Bayesian Nash equilibrium |
 
-Also included: a **Which model fits?** page (the practitioner's decision framework from Sessions 17 and 20), a course map, a faculty page, and an About page listing the hand-checked result for every game.
+Also included: a **Which model fits?** page (the practitioner's decision framework from Sessions 17 and 20), a course map, a faculty page, and an About page listing the recalculated result for each game and the limits of the content.
 
 ## Run locally
 It is plain HTML, CSS and JavaScript with no build step and no dependencies. Either double-click `index.html`, or:

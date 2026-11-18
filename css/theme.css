@@ -141,3 +141,8 @@ input[type="range"] { accent-color: var(--mod); }
 .pager a:hover { border-color: var(--mod); }
 .case { border-radius: 0; }
 .grid { border-radius: 8px; overflow: hidden; background: var(--surface); box-shadow: var(--shadow); }
+
+/* wide tables scroll inside their panel instead of stretching the page */
+.layout-2 > *, .layout-2r > *, .layout-even > *, .stack > * { min-width: 0; }
+#in-scr-table { overflow-x: auto; }
+@media (max-width: 700px) { .prose table.data { display: block; overflow-x: auto; } }

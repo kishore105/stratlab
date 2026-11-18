@@ -164,8 +164,8 @@
     guide: {
       objective: 'Experience the gap between equilibrium reasoning (everyone guesses 0) and actual behaviour (1–3 steps of reasoning), and connect it to herding in financial markets, IPO frenzies and bubbles.',
       players: '1 student vs a simulated class of 10–200, or the whole class live',
-      modes: 'Solo vs calibrated bots (5 rounds) · Classroom paste-in',
-      rules: `<ul><li>Every player picks a number from 0 to 100.</li><li>The target is <b>p × average</b> of all numbers (default p = ⅔).</li><li>The closest guess wins. Ties share the prize.</li><li>In solo mode, bots follow the mix of reasoning levels seen in experiments (Nagel 1995): about 20% random, 35% one step, 30% two steps, 10% three steps, 5% Nash.</li></ul>`,
+      modes: 'Solo vs simulated class (5 rounds) · Classroom paste-in',
+      rules: `<ul><li>Every player picks a number from 0 to 100.</li><li>The target is <b>p × average</b> of all numbers (default p = ⅔).</li><li>The closest guess wins. Ties share the prize.</li><li>In solo mode, the bots use a teaching approximation of the reasoning levels found in experiments such as Nagel (1995): about 20% random, 35% one step, 30% two steps, 10% three steps, 5% Nash.</li></ul>`,
       steps: [
         'Before playing, write down your guess and your reasoning on paper.',
         'Submit the guess in round 1. Look at the histogram: where did most of the class cluster?',

@@ -112,7 +112,7 @@
       B.hist.push({ p, q: car.q, ok, profit, cert: car.cert }); B.tot += profit;
       if (B.hist.length === 12) {
         const blind = B.hist.filter(h => !h.cert && h.ok);
-        $('#in-msg', root).innerHTML = `<div class="note ${B.tot >= 0 ? 'good' : 'bad'}"><p><b>Done.</b> Profit ₹${fmt(B.tot, 1)} lakh. ${blind.length ? `Among cars bought without a report, average quality was ₹${fmt(GT.mean(blind.map(h => h.q)), 1)}L against an average price of ₹${fmt(GT.mean(blind.map(h => h.p)), 1)}L. <b>The sellers who accept your offer are exactly the ones whose cars are worth less than it.</b>` : ''} With k = ${fmt(prm.k, 1)} < 2, any blind offer loses money on average. That is adverse selection.</p></div>`;
+        $('#in-msg', root).innerHTML = `<div class="note ${B.tot >= 0 ? 'good' : 'bad'}"><p><b>Done.</b> Profit ₹${fmt(B.tot, 1)} lakh. ${blind.length ? `Among cars bought without a report, average quality was ₹${fmt(GT.mean(blind.map(h => h.q)), 1)}L against an average price of ₹${fmt(GT.mean(blind.map(h => h.p)), 1)}L. <b>The sellers who accept your offer are exactly the ones whose cars are worth less than it.</b>` : ''} ${prm.k < 2 ? `With k = ${fmt(prm.k, 1)}, below 2, any blind offer loses money on average. That is adverse selection.` : prm.k === 2 ? 'With k = 2, a blind offer breaks even on average.' : `With k = ${fmt(prm.k, 1)}, above 2, buyers value cars enough that a blind offer makes money on average despite adverse selection.`}</p></div>`;
         GT.log('information', `Lemons buyer (k=${fmt(prm.k, 1)}, θ=${GT.pct(prm.th)}): profit ₹${fmt(B.tot, 1)}L on ${B.hist.filter(h => h.ok).length} cars`, { hist: B.hist });
       } else newCar();
       drawBuy();

@@ -82,13 +82,17 @@
     if (an.domRow !== undefined && an.domCol !== undefined && an.ne.length === 1 && !neP[0]) return '<b>Prisoner\'s Dilemma.</b> Both players have a dominant strategy, but the resulting equilibrium is Pareto-dominated: individually rational, collectively worse.';
     if (an.domRow !== undefined && an.domCol !== undefined) return '<b>Dominance-solvable with no dilemma.</b> Each player has a dominant strategy and the equilibrium is efficient.';
     if (an.ne.length === 0) return '<b>No pure-strategy equilibrium</b> (a Matching Pennies structure). Players must randomise, so see the mixed equilibrium.';
+    if (an.ne.length > 2) return `<b>${an.ne.length} pure-strategy equilibria.</b> Tied payoffs leave players indifferent, so the model alone does not say which outcome will occur.`;
     if (an.ne.length === 2) {
+      const [x, y] = an.ne;
+      if (x[0] === y[0] || x[1] === y[1]) return '<b>Two equilibria caused by a tie.</b> One player is indifferent between two strategies, so both outcomes are stable.';
+      const dA = st.pa[x[0]][x[1]] - st.pa[y[0]][y[1]], dB = st.pb[x[0]][x[1]] - st.pb[y[0]][y[1]];
       const diag = an.ne.every(([i, j]) => i === j);
-      if (diag) {
-        const [x, y] = an.ne; const s1 = st.pa[x[0]][x[1]] + st.pb[x[0]][x[1]], s2 = st.pa[y[0]][y[1]] + st.pb[y[0]][y[1]];
-        return s1 !== s2 ? '<b>Coordination game (Stag Hunt).</b> Two equilibria: one payoff-dominant (efficient but risky), one risk-dominant (safe). Trust and communication decide which one happens.' : '<b>Pure coordination game.</b> Two equilibria. Players just need to match.';
-      }
-      return '<b>Anti-coordination game (Chicken / Battle of the Sexes).</b> Two equilibria in which players do different things, and each prefers the one that favours them. Commitment and first-mover moves matter here.';
+      if (dA * dB < 0) return diag
+        ? '<b>Battle of the Sexes (coordination with conflict).</b> Both want to coordinate, but each prefers a different equilibrium. Moving first or committing publicly decides which one happens.'
+        : '<b>Chicken (anti-coordination).</b> Two equilibria in which players choose differently, and each prefers the one that favours them. Commitment and first moves matter here.';
+      if (dA === 0 && dB === 0) return '<b>Pure coordination game.</b> Two equally good equilibria. Players only need to match, so a focal point can settle it.';
+      return '<b>Assurance game (Stag Hunt).</b> Two equilibria, one better for both players. Neither will take the better action without assurance that the other will too.';
     }
     return 'Unique Nash equilibrium, reached by best-response reasoning (no dominant strategy for at least one player).';
   }
@@ -96,7 +100,8 @@
   function render(root) {
     let st = null, ieds = null, playLog = [], persona = 'rational';
     root.innerHTML = `
-      <div class="subtabs"><button class="subtab active" data-sub="lab">Matrix lab</button><button class="subtab" data-sub="play">Play vs AI rival</button><button class="subtab" data-sub="class">Classroom mode</button><button class="subtab" data-sub="classify">Classify the game (S2)</button></div>
+      <div class="subtabs"><button class="subtab active" data-sub="lab">Matrix lab</button><button class="subtab" data-sub="play">Play vs AI rival</button><button class="subtab" data-sub="class">Classroom mode</button><button class="subtab" data-sub="classify">Classify the game (S2)</button><button class="subtab" data-sub="zero">Zero-sum: saddle point</button></div>
+      <div data-pane="zero" class="hide"><div class="layout-2r"><div class="card"><div class="panel-title">Zero-sum game: payoffs to the row player</div><div class="field"><label>Example</label><select id="zs-pre"><option value="solved">Solved example from the notes</option><option value="campaign">Political campaign</option><option value="share">Market-share battle (no saddle point)</option><option value="rps">Rock-Paper-Scissors</option></select></div><p class="muted" style="font-size:.9rem">Each number is what the column player pays the row player. Row wants it high, column wants it low. Edit any number.</p><div class="matrix-wrap"><table class="matrix" id="zs-m"></table></div></div><div class="card"><div class="panel-title">Solution</div><div id="zs-out"></div></div></div></div>
       <div data-pane="classify" class="hide"><div class="card"><div class="panel-title">Session 2: what kind of game is it?</div><p class="muted" style="font-size:.9rem">For each situation, choose one option on each of the four dimensions, then check your answers. The four dimensions are independent: a game can be sequential and still have incomplete information.</p><div id="pw-cls" class="tbl-wrap"></div><div class="btn-row mt"><button class="btn primary" id="pw-cls-go">Check answers</button><button class="btn" id="pw-cls-reset">Clear</button></div><div id="pw-cls-out"></div></div></div>
       <div class="layout-2r" data-pane="lab play class">
         <div class="stack">
@@ -322,6 +327,56 @@
     $('#pw-cls-reset', root).onclick = drawCls;
     drawCls();
 
+
+    /* ---- zero-sum games: maximin, minimax, saddle point ---- */
+    const ZS = {
+      solved: { name: 'Solved example from the notes', rows: ['Row 1', 'Row 2', 'Row 3'], cols: ['Col 1', 'Col 2', 'Col 3'], m: [[4, 6, 8], [2, 4, 5], [3, 4, 4]] },
+      campaign: { name: 'Political campaign', rows: ['DC + NYC', 'DC only', 'NYC only'], cols: ['DC + NYC', 'DC only', 'NYC only'], m: [[1, 2, 4], [1, 0, 5], [0, 1, -1]] },
+      share: { name: 'Market-share battle (no saddle point)', rows: ['Discount', 'Advertise'], cols: ['Discount', 'Advertise'], m: [[3, -1], [-2, 2]] },
+      rps: { name: 'Rock-Paper-Scissors', rows: ['Rock', 'Paper', 'Scissors'], cols: ['Scissors', 'Paper', 'Rock'], m: [[1, -1, 0], [-1, 0, 1], [0, 1, -1]] }
+    };
+    let zs = JSON.parse(JSON.stringify(ZS.solved));
+    function zsMixed(m) {
+      const R = m.length, C = m[0].length;
+      if (R === 2 && C === 2) {
+        const [[a, b], [c, d]] = m, den = a + d - b - c;
+        return { p: [(d - c) / den, (a - b) / den], q: [(d - b) / den, (a - c) / den], v: (a * d - b * c) / den, exact: true };
+      }
+      // fictitious play: each side best-responds to the other's running mix
+      const rc = new Array(R).fill(0), cc = new Array(C).fill(0), ru = new Array(R).fill(0), cu = new Array(C).fill(0), N = 60000;
+      for (let t = 0; t < N; t++) {
+        const i = ru.indexOf(Math.max(...ru)), j = cu.indexOf(Math.min(...cu));
+        rc[i]++; cc[j]++;
+        for (let k = 0; k < C; k++) cu[k] += m[i][k];
+        for (let k = 0; k < R; k++) ru[k] += m[k][j];
+      }
+      return { p: rc.map(x => x / N), q: cc.map(x => x / N), v: (Math.max(...ru) + Math.min(...cu)) / (2 * N), exact: false };
+    }
+    function drawZero() {
+      const m = zs.m, rmin = m.map(r => Math.min(...r)), cmax = zs.cols.map((_, j) => Math.max(...m.map(r => r[j])));
+      const maximin = Math.max(...rmin), minimax = Math.min(...cmax);
+      const saddle = []; m.forEach((r, i) => r.forEach((v, j) => { if (v === rmin[i] && v === cmax[j]) saddle.push([i, j]); }));
+      let h = `<tr><th></th>${zs.cols.map(c => `<th class="colhead">${esc(c)}</th>`).join('')}<th class="colhead" style="color:var(--ink)">Row min</th></tr>`;
+      m.forEach((r, i) => {
+        h += `<tr><th class="rowhead">${esc(zs.rows[i])}</th>${r.map((v, j) => `<td class="cell ${saddle.some(s => s[0] === i && s[1] === j) ? 'ne' : ''}"><span class="pay"><input class="a" type="number" data-zi="${i}" data-zj="${j}" value="${v}"></span></td>`).join('')}<td class="mono" style="font-weight:${rmin[i] === maximin ? 700 : 400}">${rmin[i]}</td></tr>`;
+      });
+      h += `<tr><th class="rowhead" style="color:var(--ink)">Col max</th>${cmax.map(v => `<td class="mono" style="padding-top:6px;font-weight:${v === minimax ? 700 : 400}">${v}</td>`).join('')}<td></td></tr>`;
+      $('#zs-m', root).innerHTML = h;
+      $$('#zs-m input', root).forEach(inp => inp.onchange = () => { zs.m[+inp.dataset.zi][+inp.dataset.zj] = parseFloat(inp.value) || 0; drawZero(); });
+      const fair = v => Math.abs(v) < 0.005 ? 'This is a <b>fair game</b>: neither side has an advantage.' : v > 0 ? 'The game is <b>not fair</b>: the row player has the advantage.' : 'The game is <b>not fair</b>: the column player has the advantage.';
+      let out = `<div class="kpis"><div class="kpi"><div class="k">Maximin (row)</div><div class="v">${maximin}</div></div><div class="kpi"><div class="k">Minimax (column)</div><div class="v">${minimax}</div></div></div>`;
+      if (saddle.length) {
+        const [i, j] = saddle[0];
+        out += `<div class="note amber"><p><b>Saddle point at (${esc(zs.rows[i])}, ${esc(zs.cols[j])}).</b> Maximin = minimax = ${maximin}, so the value of the game is <b>${maximin}</b>. ${fair(maximin)}${saddle.length > 1 ? ` There are ${saddle.length} saddle points, all with the same value.` : ''}</p></div>`;
+      } else {
+        const x = zsMixed(m), mix = (names, ps) => names.map((n, k) => `${esc(n)} ${GT.pct(ps[k], x.exact ? 1 : 0)}`).join(', ');
+        out += `<div class="note"><p><b>No saddle point.</b> Maximin (${maximin}) is below minimax (${minimax}), so there is no pure-strategy equilibrium and both sides must mix.</p><p>Row plays ${mix(zs.rows, x.p)}. Column plays ${mix(zs.cols, x.q)}. Value of the game ${x.exact ? '=' : '≈'} <b>${fmt(x.v, 2)}</b>. ${fair(x.v)}</p></div>`;
+      }
+      $('#zs-out', root).innerHTML = out;
+    }
+    $('#zs-pre', root).onchange = e => { zs = JSON.parse(JSON.stringify(ZS[e.target.value])); drawZero(); };
+    drawZero();
+
     preset.onchange = () => load(preset.value);
     load('telecom');
   }
@@ -330,12 +385,12 @@
     id: 'price-war', num: 1, icon: '⚔️', title: 'Price War Matrix Lab', modules: ['M1', 'M2'], sessions: '1–4, 7', time: '30–40 min',
     tagline: 'Payoff matrices for telecom tariffs, FMCG advertising, highway petrol pumps and Boeing vs Airbus. Edit the numbers and the solver marks best responses, dominated strategies and equilibria. Includes the Session 2 classification exercise.',
     problem: 'Two telecom companies must set prices at the same time without knowing each other\'s choice. How do we represent this formally, and what does it predict? Why do rivals end up in price wars even when cooperation would benefit everyone?',
-    concepts: ['Normal form', 'Dominant strategy', 'IEDS', 'Nash equilibrium', 'Pareto efficiency'],
+    concepts: ['Normal form', 'Dominant strategy', 'IEDS', 'Nash equilibrium', 'Pareto efficiency', 'Saddle point'],
     render,
     guide: {
       objective: 'Learn to turn a business rivalry into a payoff matrix, solve it with dominance, IEDS and best responses, and recognise the four classic game families: Prisoner\'s Dilemma, coordination, anti-coordination and stag hunt.',
       players: '1 student vs AI, or the class split into row-firms and column-firms',
-      modes: 'Matrix lab (solver) · Play vs AI (6 rounds) · Classroom tally',
+      modes: 'Matrix lab (solver) · Play vs AI (6 rounds) · Classroom tally · Classification exercise · Zero-sum solver',
       rules: `<ul><li>You are the <b style="color:var(--p1)">row player</b> (blue payoffs). The rival is the <b style="color:var(--p2)">column player</b> (red).</li><li>Both choose simultaneously and cannot sign binding contracts.</li><li>Each cell shows (your payoff, rival payoff) in the stated units.</li><li>In Play mode you face a rival with a hidden or chosen persona for 6 rounds. Total profit is your score.</li></ul>`,
       steps: [
         'Choose the <b>Telecom tariff war</b> scenario. Before looking at the solver, write down what you think each firm will do and why.',
@@ -377,7 +432,13 @@
       <h3>6. Mixed-strategy equilibrium (2×2)</h3>
       <p>Each player randomises so as to make the <b>other</b> player indifferent. In a 2×2 game the column player's equilibrium probability q of the first column solves:</p>
       <div class="formula">q·a₁₁ + (1−q)·a₁₂ = q·a₂₁ + (1−q)·a₂₂   (row player indifferent)</div>
-      <h3>7. Limits</h3>
+      <h3>7. Zero-sum games: maximin and minimax</h3>
+      <p>In a zero-sum game one player's gain is the other's loss, so the matrix shows only the row player's payoff. Row finds the worst case of each row and picks the best of those (<b>maximin</b>). Column finds the worst case of each column and picks the smallest (<b>minimax</b>).</p>
+      <div class="formula">Saddle point exists  ⇔  maximin = minimax  (the cell is the lowest in its row and the highest in its column)</div>
+      <p>The common number is the <b>value of the game</b>. A value of 0 means a fair game. If maximin and minimax differ, there is no pure-strategy equilibrium and players must mix.</p>
+      <h3>8. Focal points</h3>
+      <p>When a game has several equilibria, theory alone cannot say which will occur. Schelling observed that people often settle on the one that stands out through convention, history or salience, even without communicating.</p>
+      <h3>9. Limits</h3>
       <ul><li>Payoffs must include everything the players care about: fairness, reputation, tail risk. The Boeing preset shows what happens when the matrix leaves something out.</li><li>NE predicts <i>stable</i> outcomes, not necessarily the ones that will occur when several equilibria exist (the selection problem).</li></ul>`,
     practice: [
       { tag: 'India', title: 'Jio\'s 2016 entry and the tariff war', text: 'Jio launched with free voice and very cheap data. Incumbents had to cut, and data prices fell by over 90% within a couple of years. The industry consolidated (Vodafone and Idea merged in 2018) and several smaller operators exited. This is a PD with an entrant whose payoffs differed sharply from the incumbents\'.' },

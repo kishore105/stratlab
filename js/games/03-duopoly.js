@@ -127,7 +127,7 @@
       const k = bench();
       if (C.hist.length === ROUNDS) {
         const avg = GT.mean(C.hist.map(x => x.q1));
-        $('#du-cmsg', root).innerHTML = `<div class="note"><p><b>Game over.</b> Your average output was ${fmt(avg, 1)}, against ${fmt(k.qc, 1)} at Cournot and ${fmt(k.qm / 2, 1)} as a cartel member. Total profit: ${fmt(C.tot[0])}. Playing Cournot every round would have earned ≈ ${fmt(k.prc * ROUNDS)} against an adaptive rival.</p></div>`;
+        $('#du-cmsg', root).innerHTML = `<div class="note"><p><b>Game over.</b> Your average output was ${fmt(avg, 1)}, against ${fmt(k.qc, 1)} at Cournot and ${fmt(k.qm / 2, 1)} as a cartel member. Total profit: ${fmt(C.tot[0])}. ${{ br: `Against this adaptive rival, producing the Cournot quantity every round earns about ${fmt(k.prc * ROUNDS)}.`, cartel: `Against this rival, holding to the cartel quantity every round earns about ${fmt(k.prm / 2 * ROUNDS)}.`, leader: `Against a rival committed to ${fmt(k.ql, 1)}, your best reply is ${fmt(k.qf, 1)} every round, which earns about ${fmt(k.prf * ROUNDS)}.` }[$('#du-ctype', root).value]}</p></div>`;
         GT.log('duopoly', `Cournot vs ${$('#du-ctype', root).selectedOptions[0].text.split(' (')[0]}: profit ${fmt(C.tot[0])} vs ${fmt(C.tot[1])}`, { hist: C.hist, market: M });
       }
       drawCournot();

@@ -17,7 +17,7 @@
   ];
   GT.MODULES = MODULES;
 
-  const SHORT = { 'price-war': 'Price War Lab', 'beauty-contest': 'Beauty Contest', duopoly: 'Cournot vs Bertrand', mixed: 'Audits & Penalty Kicks', entry: 'Entry & Commitment', bargaining: 'Bargaining Table', repeated: 'OPEC Cartel', information: 'Lemons & Signals', auction: 'Auction House', coalition: 'Shapley & Core', matching: 'Matching Market', 'public-goods': 'Climate Club' };
+  const SHORT = { 'price-war': 'Price War Lab', 'beauty-contest': 'Beauty Contest', duopoly: 'Cournot vs Bertrand', mixed: 'Audits & Penalty Kicks', entry: 'Entry & Commitment', bargaining: 'Bargaining Table', repeated: 'OPEC Cartel', information: 'Lemons & Signals', auction: 'Auction House', coalition: 'Shapley & Core', matching: 'Matching Market', 'public-goods': 'Climate Club', rollback: 'Rollback Lab', bayesian: 'Hidden Types' };
   const no2 = g => String(g.num).padStart(2, '0');
   const MCOL = { M1: '#2e6f9e', M2: '#2f8f83', M3: '#7a5195', M4: '#a23b72', M5: '#5c7f3a', M6: '#b9801b', M7: '#3f5fb0', M8: '#1f8a9e', M9: '#b04a4a', M10: '#3e7b58' };
   const colorOf = g => MCOL[g.modules[0]] || '#13294b';
@@ -163,7 +163,7 @@
         ${deco}
         <div class="kicker">Strategic Decision Making: A Game Theoretic Approach · MBA Term V</div>
         <h1>StratLab</h1>
-        <p class="lead">Twelve classroom games that follow the session plan. Play against the computer or with your class, then check what happened against the theory.</p>
+        <p class="lead">Fourteen classroom games that follow the session plan. Play against the computer or with your class, then check what happened against the theory.</p>
         <div class="btn-row"><a class="btn primary" href="#/game/${nextG.id}">${played ? 'Continue with' : 'Start with'} ${no2(nextG)} ${esc(GT.shortTitle(nextG))}</a><a class="btn" href="#/choose">Which model fits my problem?</a></div>
       </header>
       <div class="home-two">
@@ -184,7 +184,7 @@
     const clo = [
       ['CLO 1', 'Represent real situations as games: players, strategies, information, payoffs', 'Every game starts with an explicit model (matrix, tree, characteristic function). In Price War, Entry and Coalition Lab, students build or edit the model themselves.'],
       ['CLO 2', 'Analyse with NE, backward induction, repeated-game logic, information concepts', 'Built-in solvers (NE finder, IEDS, backward induction, Shapley/Core, deferred acceptance, Rubinstein) check student reasoning in real time.'],
-      ['CLO 3', 'Evaluate assumptions; when behaviour changes the predictions', 'AI opponents are calibrated to experimental evidence (ultimatum rejections, level-k reasoning, conditional cooperation), so play regularly departs from theory. Debrief questions ask students to explain the gap.']
+      ['CLO 3', 'Evaluate assumptions; when behaviour changes the predictions', 'Computer opponents are modelled loosely on experimental findings (ultimatum rejections, level-k reasoning, conditional cooperation), so play regularly departs from theory. Debrief questions ask students to explain the gap.']
     ].map(r => `<tr><td><b>${r[0]}</b></td><td>${r[1]}</td><td>${r[2]}</td></tr>`).join('');
     root.innerHTML = `
       <div class="page-head"><div class="kicker">Session plan</div><h1>Course map</h1>
@@ -204,7 +204,7 @@
     root.innerHTML = `
       <div class="prose" style="max-width:920px">
         <div class="page-head"><div class="kicker">For faculty</div><h1>Running the games in class</h1>
-        <p class="lead">Every simulation can run in two ways. In <b>Solo / AI mode</b> students play against calibrated AI rivals on their laptops or phones. In <b>Classroom mode</b> the faculty projects the page and enters the whole class's responses to show aggregate results live. Nothing needs installing. Students sign in with their name and roll number, and faculty can continue as guests.</p></div>
+        <p class="lead">Every simulation can be used by students on their own laptops or phones. Seven of them also have a <b>Classroom mode</b>, where the faculty projects the page and enters the whole class's responses to show aggregate results live. Nothing needs installing. Students sign in with their name and roll number, and faculty can continue as guests.</p></div>
 
         <h3>Session template (works for any game)</h3>
         <div class="guide-grid">
@@ -282,31 +282,35 @@
 
   function pageAbout(root) {
     const checks = [
+      ['01 Price War Lab (zero-sum)', 'Solved example from the notes: maximin = minimax = 4, saddle point at Row 1, Col 1.'],
       ['01 Price War Lab', 'Telecom matrix: both firms have “Cut” as a dominant strategy; unique NE (Cut, Cut) = (350, 350) is Pareto-dominated by (600, 600). Petrol pumps: IEDS removes High, then Mid, leaving (Low, Low).'],
       ['02 Beauty Contest', 'Guesses above 100p are dominated; level-k anchors 50·pᵏ (33.3, 22.2, 14.8 for p = ⅔); unique NE is 0.'],
       ['03 Cournot vs Bertrand', 'a = 100, b = 1, c = 10: Cournot q = 30 each, P = 40, profit 900; cartel Q = 45, P = 55; Stackelberg 45 / 22.5. Bertrand price falls to c; with capacity K = 30 it stays at 40 (Kreps–Scheinkman).'],
-      ['04 Audits & Penalty Kicks', 'Audit rate T/(T+F) = 40%, evasion C/T = 30% at the defaults. Penalty kicks: keeper 42.0%, kicker 38.5%, matching Palacios-Huerta (2003).'],
+      ['04 Audits & Penalty Kicks', 'Audit rate T/(T+F) = 40%, evasion C/T = 30% at the defaults. Penalty kicks: keeper 42.0%, kicker 38.5%, using the scoring rates cited from Palacios-Huerta (2003).'],
       ['05 Entry & Commitment', 'Every tree solved by hand: entry (Enter, Accommodate); capacity (Invest, Stay out) = 80 > 50; lawsuit (contingency fee, Cut price); brinkmanship threshold p > 2/11; Maruti threshold p > 0.5.'],
       ['06 Bargaining Table', 'Rubinstein share (1 − δ₂)/(1 − δ₁δ₂) = 35.7% at δ = 0.8, 0.9; Nash bargaining dₐ + α·surplus = 270 at the defaults.'],
-      ['07 OPEC Cartel', 'Grim trigger needs δ ≥ (T − R)/(T − P) = 0.5 at T = 5. Strategy rules checked against Axelrod (1984) and Nowak & Sigmund (1993).'],
+      ['07 OPEC Cartel', 'Grim trigger needs δ ≥ (T − R)/(T − P) = 0.5 at T = 5. Strategies are implemented as described in Axelrod (1984) and Nowak & Sigmund (1993).'],
       ['08 Lemons & Signals', 'Lemons market survives only if k ≥ 2 (uniform quality). Spence separating band (H − L)/c_L ≤ e* ≤ (H − L)/c_H = [2.4, 6]. Insurance menu satisfies both self-selection constraints at the defaults.'],
       ['09 Auction House', 'First-price bid (n − 1)/n · v; expected revenue 100(n − 1)/(n + 1) = 60 for n = 4, confirmed by simulation; optimal reserve 50.'],
       ['10 Shapley & Core', 'IT consortium Shapley (245, 210, 345) enumerated over 6 orders and in the Core; glove game (66.7, 16.7, 16.7); airport costs (5, 15, 30, 50); 50/49/1 voting power (⅔, ⅙, ⅙).'],
       ['11 Matching Market', 'Deferred acceptance output checked for blocking pairs every run; proposer-optimality visible by swapping sides.'],
-      ['12 Climate Club', 'Zero contribution is dominant when MPCR < 1; full contribution is efficient when n·MPCR > 1.']
+      ['12 Climate Club', 'Zero contribution is dominant when MPCR < 1; full contribution is efficient when n·MPCR > 1.'],
+      ['13 Rollback Lab', 'Slide example rolls back to (3, 8), with 4 strategies each and 4 subgames. Firm A and B game has 3 Nash equilibria and 1 SPNE. Coin split has 3 and 8 strategies.'],
+      ['14 Hidden Types', 'Matching Pennies or Bidding gives (2, 11). Battle of the Sexes at 0.75 gives (Football, Football/Movie) and (Movie, Movie/Football). Both match the course slides.']
     ];
     root.innerHTML = `
-      <div class="page-head"><div class="kicker">About</div><h1>About StratLab</h1>
+      <div class="page-head"><div class="kicker">About</div><h1>About StratLab</h1>${(window.STRATLAB_CONFIG || {}).author ? `<p style="margin:0 0 8px"><b>Submitted by ${esc(STRATLAB_CONFIG.author)}${STRATLAB_CONFIG.rollNo ? ', ' + esc(STRATLAB_CONFIG.rollNo) : ''}</b></p>` : ''}
       <p class="lead">StratLab was built as a Working with AI (WAI) project for the Term V elective <i>Strategic Decision Making: A Game Theoretic Approach</i>. It follows the session plan of the course: each game corresponds to one or more sessions and uses the cases named in the outline where possible.</p></div>
       <div class="prose" style="max-width:880px">
         <h3>How it is meant to be used</h3>
         <p>A student should be able to open a game, read three lines of instructions and start playing. The theory, cases and debrief questions sit in separate tabs so they don't get in the way of the simulation. Faculty can run most games live by collecting the class's choices and pasting them in. Students sign in with their name and roll number. Each game they finish sends their name, roll number, choices and result to a Google Sheet that only the course team can open. A copy also stays in their browser, where they can export it from My results. Guests' results are not sent anywhere.</p>
-        <p>Computer opponents follow published experimental findings rather than perfect rationality. Ultimatum responders reject low offers at the rates reported by Güth et al. and Camerer; the beauty-contest class reasons one to three steps deep as in Nagel (1995); public-goods players are conditional cooperators as in Fischbacher, Gächter and Fehr (2001). The gap between what the model predicts and what happens in play is part of what students are meant to discuss.</p>
+        <p>Computer opponents do not play perfectly rationally. Their behaviour is a teaching approximation, modelled loosely on experimental findings: ultimatum responders tend to reject low offers (Güth et al. 1982; Camerer 2003), the simulated beauty-contest class reasons a few steps deep (Nagel 1995), and public-goods players include conditional cooperators (Fischbacher, Gächter and Fehr 2001). The numbers are not estimates from those studies. The gap between what the model predicts and what happens in play is part of what students are meant to discuss.</p>
         <h3>How the models were checked</h3>
-        <p>Each solver's output was compared with a hand calculation for the default numbers. The results below are what the site shows when you open each game without changing anything.</p>
+        <p>The results below were recalculated separately from the site's code, using the standard formulas, and compared with what the site shows at its default settings. Rollback Lab and Hidden Types were also compared with the worked answers in the course slides.</p>
         <div class="tbl-wrap"><table class="data"><thead><tr><th style="width:190px">Game</th><th>Result checked</th></tr></thead><tbody>${checks.map(c => `<tr><td><b>${c[0]}</b></td><td>${c[1]}</td></tr>`).join('')}</tbody></table></div>
         <h3>Use of AI</h3>
-        <p>An AI assistant (Claude) was used to draft the simulation code, the solvers and parts of the explanatory text. The payoff structures, equilibria and case facts were then checked by hand against the textbooks and sources listed below, and several errors were corrected along the way (for example, the inspection-game payoffs and the dominance threshold in the beauty contest). Case figures are rounded and are for teaching; check current numbers before quoting them in assessed work.</p>
+        <p>An AI assistant (Claude) wrote the simulation code and solvers and drafted the explanatory text and cases, working from the course outline and lecture notes. Equilibrium results were recalculated as described above, and errors found along the way were corrected (for example, the inspection-game payoffs and the dominance threshold in the beauty contest).</p>
+        <p><b>Limits.</b> Case facts, figures and statistics quoted from studies were written from the AI's general knowledge and have not been verified against the original sources. They are rounded and meant for teaching. Check them before quoting them in assessed work.</p>
         <h3>References</h3>
         <ul>
           <li>Dixit, A. K. &amp; Skeath, S. (2015). <i>Games of Strategy</i> (3rd ed.). Norton.</li>

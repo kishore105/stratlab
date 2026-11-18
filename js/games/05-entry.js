@@ -184,12 +184,22 @@
       if (shown >= steps.length) {
         const eqPath = []; let n = tree;
         while (n && !n.pay) { if (n.player === 'N') { eqPath.push('Nature moves'); break; } eqPath.push(`${esc(n.label)}: ${esc(n.moves[n.best].a)}`); n = n.moves[n.best].to; }
-        fin = `<div class="note amber"><p><b>SPNE outcome.</b> ${eqPath.join(' → ')}. Payoffs (${fmt(tree.val[0], 1)}, ${fmt(tree.val[1], 1)}).</p>${insight()}</div>`;
+        fin = `<div class="note amber"><p><b>SPNE outcome.</b> ${eqPath.join(' → ')}. Payoffs (${fmt(tree.val[0], 1)}, ${fmt(tree.val[1], 1)}).</p>${isEdited() ? editedInsight() : insight()}</div>`;
       }
       $('#en-steps', root).innerHTML = st + fin || '<span class="muted">Start from the end of the tree: click Next step.</span>';
       drawEdit();
     }
 
+    function pathOf(t) { const out = []; let n = t; while (n && !n.pay && n.player !== 'N') { out.push(n.moves[n.best].a); n = n.moves[n.best].to; } return out.join(' → '); }
+    function originalTree() { const d = S.build(+$('#en-p', root).value); prep(d); solve(d, []); return d; }
+    function isEdited() {
+      const lv = t => { const o = []; (function w(n) { if (n.pay) o.push(n.pay.join()); else n.moves.forEach(m => w(m.to)); })(t); return o.join('|'); };
+      return lv(originalTree()) !== lv(tree);
+    }
+    function editedInsight() {
+      const d = originalTree(), same = pathOf(d) === pathOf(tree);
+      return `<p class="mb0" style="margin-top:6px"><b>You have edited the payoffs.</b> With the original numbers the choices were ${esc(pathOf(d))}, with payoffs (${fmt(d.val[0], 1)}, ${fmt(d.val[1], 1)}). ${same ? 'Your edit does not change those choices.' : 'Your edit changes the outcome. The steps above show which comparison flipped.'}</p>`;
+    }
     function insight() {
       if (key === 'entry') return '<p class="mb0" style="margin-top:6px">The fare-war threat is <b>not credible</b>: once the entrant is in, fighting (20) is worse for the incumbent than accommodating (50). A Nash equilibrium in which the entrant stays out because of the threat exists, but it is not subgame perfect.</p>';
       if (key === 'capacity') return '<p class="mb0" style="margin-top:6px">Investing lowers the incumbent\'s payoff in some branches, yet it <b>raises</b> its equilibrium payoff (80 vs 50) because it makes fighting credible. Commitment means deliberately limiting your own options.</p>';

@@ -90,7 +90,7 @@
         series: [{ name: 'Probability responder accepts (%)', color: 'var(--p2)', points: curve }, { name: 'Your expected earnings ÷ 10', color: 'var(--p1)', points: ev, area: true },
         { name: 'Your offers (✓ accepted at top, ✗ rejected at bottom)', color: 'var(--ink)', points: P.hist.map(h => [h.o, h.ok ? 100 : 0]), dots: true, noLine: true, r: 5 }],
         xMin: 0, xMax: PIE, yMin: 0, yMax: 100, xLabel: 'Amount offered (₹)', yLabel: '%  /  ₹÷10', height: 300,
-        vlines: [{ x: best[0], label: `Best offer ≈ ₹${best[0]}`, color: 'var(--amber)' }, { x: 25, label: 'SPNE ≈ ₹1', color: 'var(--bad)' }]
+        vlines: [{ x: best[0], label: `Best offer ≈ ₹${best[0]}`, color: 'var(--amber)' }, { x: 1, label: 'SPNE ≈ ₹1', color: 'var(--bad)' }]
       });
       $('#ba-pr', root).textContent = Math.min(P.hist.length + 1, 10);
       $('#ba-pt', root).textContent = '₹' + fmt(P.tot);
