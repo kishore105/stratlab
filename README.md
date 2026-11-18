@@ -20,7 +20,7 @@ It contains 14 interactive simulations mapped to the 20-session plan. Each one h
 | 13 | Rollback Lab | M3 · S8–9 | Centipede game, Nim, tree-to-matrix conversion, Nash vs subgame perfect equilibria |
 | 14 | Hidden Types | M6 · S14 | Bayesian games, types and beliefs, Bayesian Nash equilibrium |
 
-Also included: a **Which model fits?** page (the practitioner's decision framework from Sessions 17 and 20), a course map, a faculty page, and an About page listing the recalculated result for each game and the limits of the content.
+Also included: a **Which model fits?** page (the practitioner's decision framework from Sessions 17 and 20), a course map and a faculty page.
 
 ## Run locally
 It is plain HTML, CSS and JavaScript with no build step and no dependencies. Either double-click `index.html`, or:

@@ -125,7 +125,7 @@
       <a class="side-link" data-p="faculty" href="#/faculty">For faculty</a>
       <a class="side-link" data-p="results" href="#/results">My results</a>
       <div id="sideGames">${mods}</div>
-      <div class="side-foot"><a href="#/about" class="side-link" data-p="about">About</a><button class="theme-btn" id="themeBtn">Dark mode</button></div>`;
+      <div class="side-foot"><button class="theme-btn" id="themeBtn">Dark mode</button></div>`;
     paintWho();
     $('#themeBtn').onclick = () => {
       const next = document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark';
@@ -235,6 +235,8 @@
           <li><b>AI-augmented extension:</b> each game includes a "Working with AI" prompt. Grade the quality of the student's critique of the AI output, not the output itself.</li>
         </ul>
 
+        <h3>Accuracy of the content</h3>
+        <p>This site was built with an AI assistant (Claude). Equilibrium results were recalculated separately and compared with the course slides where worked answers exist. Case facts, figures and statistics quoted from studies have not been verified against original sources, and computer opponents are teaching approximations. Check any figure before quoting it in assessed work.</p>
         <h3>Practical tips</h3>
         <ul>
           <li>Phones work: the layout adapts to small screens.</li>
@@ -278,48 +280,6 @@
     };
     $('#expJson').onclick = () => GT.download('stratlab-results.json', JSON.stringify(GT.readLog(), null, 2), 'application/json');
     $('#clr').onclick = () => { if (confirm('Clear all logged results in this browser?')) { GT.clearLog(); pageResults(root); } };
-  }
-
-  function pageAbout(root) {
-    const checks = [
-      ['01 Price War Lab (zero-sum)', 'Solved example from the notes: maximin = minimax = 4, saddle point at Row 1, Col 1.'],
-      ['01 Price War Lab', 'Telecom matrix: both firms have “Cut” as a dominant strategy; unique NE (Cut, Cut) = (350, 350) is Pareto-dominated by (600, 600). Petrol pumps: IEDS removes High, then Mid, leaving (Low, Low).'],
-      ['02 Beauty Contest', 'Guesses above 100p are dominated; level-k anchors 50·pᵏ (33.3, 22.2, 14.8 for p = ⅔); unique NE is 0.'],
-      ['03 Cournot vs Bertrand', 'a = 100, b = 1, c = 10: Cournot q = 30 each, P = 40, profit 900; cartel Q = 45, P = 55; Stackelberg 45 / 22.5. Bertrand price falls to c; with capacity K = 30 it stays at 40 (Kreps–Scheinkman).'],
-      ['04 Audits & Penalty Kicks', 'Audit rate T/(T+F) = 40%, evasion C/T = 30% at the defaults. Penalty kicks: keeper 42.0%, kicker 38.5%, using the scoring rates cited from Palacios-Huerta (2003).'],
-      ['05 Entry & Commitment', 'Every tree solved by hand: entry (Enter, Accommodate); capacity (Invest, Stay out) = 80 > 50; lawsuit (contingency fee, Cut price); brinkmanship threshold p > 2/11; Maruti threshold p > 0.5.'],
-      ['06 Bargaining Table', 'Rubinstein share (1 − δ₂)/(1 − δ₁δ₂) = 35.7% at δ = 0.8, 0.9; Nash bargaining dₐ + α·surplus = 270 at the defaults.'],
-      ['07 OPEC Cartel', 'Grim trigger needs δ ≥ (T − R)/(T − P) = 0.5 at T = 5. Strategies are implemented as described in Axelrod (1984) and Nowak & Sigmund (1993).'],
-      ['08 Lemons & Signals', 'Lemons market survives only if k ≥ 2 (uniform quality). Spence separating band (H − L)/c_L ≤ e* ≤ (H − L)/c_H = [2.4, 6]. Insurance menu satisfies both self-selection constraints at the defaults.'],
-      ['09 Auction House', 'First-price bid (n − 1)/n · v; expected revenue 100(n − 1)/(n + 1) = 60 for n = 4, confirmed by simulation; optimal reserve 50.'],
-      ['10 Shapley & Core', 'IT consortium Shapley (245, 210, 345) enumerated over 6 orders and in the Core; glove game (66.7, 16.7, 16.7); airport costs (5, 15, 30, 50); 50/49/1 voting power (⅔, ⅙, ⅙).'],
-      ['11 Matching Market', 'Deferred acceptance output checked for blocking pairs every run; proposer-optimality visible by swapping sides.'],
-      ['12 Climate Club', 'Zero contribution is dominant when MPCR < 1; full contribution is efficient when n·MPCR > 1.'],
-      ['13 Rollback Lab', 'Slide example rolls back to (3, 8), with 4 strategies each and 4 subgames. Firm A and B game has 3 Nash equilibria and 1 SPNE. Coin split has 3 and 8 strategies.'],
-      ['14 Hidden Types', 'Matching Pennies or Bidding gives (2, 11). Battle of the Sexes at 0.75 gives (Football, Football/Movie) and (Movie, Movie/Football). Both match the course slides.']
-    ];
-    root.innerHTML = `
-      <div class="page-head"><div class="kicker">About</div><h1>About StratLab</h1>${(window.STRATLAB_CONFIG || {}).author ? `<p style="margin:0 0 8px"><b>Submitted by ${esc(STRATLAB_CONFIG.author)}${STRATLAB_CONFIG.rollNo ? ', ' + esc(STRATLAB_CONFIG.rollNo) : ''}</b></p>` : ''}
-      <p class="lead">StratLab was built as a Working with AI (WAI) project for the Term V elective <i>Strategic Decision Making: A Game Theoretic Approach</i>. It follows the session plan of the course: each game corresponds to one or more sessions and uses the cases named in the outline where possible.</p></div>
-      <div class="prose" style="max-width:880px">
-        <h3>How it is meant to be used</h3>
-        <p>A student should be able to open a game, read three lines of instructions and start playing. The theory, cases and debrief questions sit in separate tabs so they don't get in the way of the simulation. Faculty can run most games live by collecting the class's choices and pasting them in. Students sign in with their name and roll number. Each game they finish sends their name, roll number, choices and result to a Google Sheet that only the course team can open. A copy also stays in their browser, where they can export it from My results. Guests' results are not sent anywhere.</p>
-        <p>Computer opponents do not play perfectly rationally. Their behaviour is a teaching approximation, modelled loosely on experimental findings: ultimatum responders tend to reject low offers (Güth et al. 1982; Camerer 2003), the simulated beauty-contest class reasons a few steps deep (Nagel 1995), and public-goods players include conditional cooperators (Fischbacher, Gächter and Fehr 2001). The numbers are not estimates from those studies. The gap between what the model predicts and what happens in play is part of what students are meant to discuss.</p>
-        <h3>How the models were checked</h3>
-        <p>The results below were recalculated separately from the site's code, using the standard formulas, and compared with what the site shows at its default settings. Rollback Lab and Hidden Types were also compared with the worked answers in the course slides.</p>
-        <div class="tbl-wrap"><table class="data"><thead><tr><th style="width:190px">Game</th><th>Result checked</th></tr></thead><tbody>${checks.map(c => `<tr><td><b>${c[0]}</b></td><td>${c[1]}</td></tr>`).join('')}</tbody></table></div>
-        <h3>Use of AI</h3>
-        <p>An AI assistant (Claude) wrote the simulation code and solvers and drafted the explanatory text and cases, working from the course outline and lecture notes. Equilibrium results were recalculated as described above, and errors found along the way were corrected (for example, the inspection-game payoffs and the dominance threshold in the beauty contest).</p>
-        <p><b>Limits.</b> Case facts, figures and statistics quoted from studies were written from the AI's general knowledge and have not been verified against the original sources. They are rounded and meant for teaching. Check them before quoting them in assessed work.</p>
-        <h3>References</h3>
-        <ul>
-          <li>Dixit, A. K. &amp; Skeath, S. (2015). <i>Games of Strategy</i> (3rd ed.). Norton.</li>
-          <li>Osborne, M. J. (2004). <i>An Introduction to Game Theory</i>. Oxford University Press.</li>
-          <li>Ferguson, T. S. (2020). <i>A Course in Game Theory</i>. World Scientific.</li>
-          <li>Akerlof (1970); Spence (1973); Rothschild &amp; Stiglitz (1976); Rubinstein (1982); Axelrod (1984); Nagel (1995); Fehr &amp; Gächter (2000); Palacios-Huerta (2003); Milinski et al. (2008); Calvano et al. (2020).</li>
-          <li>Gale &amp; Shapley (1962); Shapley (1953); Shapley &amp; Shubik (1954); Littlechild &amp; Owen (1973); Roth (2015) <i>Who Gets What and Why</i>; Milgrom (2004) <i>Putting Auction Theory to Work</i>; Schelling (1960) <i>The Strategy of Conflict</i>.</li>
-        </ul>
-      </div>`;
   }
 
   /* ---------- game page ---------- */
@@ -513,7 +473,6 @@
     else if (page === 'choose') pageChoose(root);
     else if (page === 'faculty') pageFaculty(root);
     else if (page === 'results') pageResults(root);
-    else if (page === 'about') pageAbout(root);
     else pageHome(root);
     if (!(page === 'game' && parts[2])) window.scrollTo(0, 0);
     const act = $('.side-game.active'); if (act) act.scrollIntoView({ block: 'nearest' });
