@@ -79,7 +79,7 @@
       `;
 
     let prm;
-    const paint = GT.bindRanges(root, o => { prm = o; drawAll(); }, { k: v => fmt(v, 1), th: v => GT.pct(v), k2: v => fmt(v, 2), th2: v => GT.pct(v), qmin: v => fmt(v, 1), lam: v => fmt(v, 2), es: v => fmt(v, 1), iRho: v => fmt(v, 2), iLam: v => GT.pct(v) });
+    const paint = GT.bindRanges(root, o => { const restart = B && (o.k !== prm.k || o.th !== prm.th); prm = o; if (restart) resetBuy(); drawAll(); }, { k: v => fmt(v, 1), th: v => GT.pct(v), k2: v => fmt(v, 2), th2: v => GT.pct(v), qmin: v => fmt(v, 1), lam: v => fmt(v, 2), es: v => fmt(v, 1), iRho: v => fmt(v, 2), iLam: v => GT.pct(v) });
     prm = paint();
     GT.subtabs(root, () => drawAll());
 

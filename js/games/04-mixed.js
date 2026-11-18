@@ -69,7 +69,7 @@
       </div>`;
 
     let key = 'gst', prm, S, E, hist = [];
-    const paint = GT.bindRanges(root, o => { prm = o; setup(false); });
+    const paint = GT.bindRanges(root, o => { prm = o; setup(true); });
     prm = paint();
 
     function setup(resetHist = true) {

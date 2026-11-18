@@ -67,7 +67,7 @@
     const P = (Q) => Math.max(0, M.a - M.b * Q);
     const D = (p) => Math.max(0, (M.a - p) / M.b);
 
-    const paint = GT.bindRanges(root, o => { M = o; refresh(); }, { b: v => fmt(v, 2) });
+    const paint = GT.bindRanges(root, o => { M = o; C = { hist: [], tot: [0, 0] }; B = { hist: [], tot: [0, 0] }; $('#du-cmsg', root).innerHTML = ''; $('#du-bmsg', root).innerHTML = ''; refresh(); }, { b: v => fmt(v, 2) });
     M = paint();
     GT.subtabs(root, s => { mode = s; refresh(); });
 

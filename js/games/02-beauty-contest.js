@@ -77,7 +77,7 @@
 
     GT.subtabs(root);
     let rounds = [], params;
-    const paint = GT.bindRanges(root, o => { params = o; $('#bc-aggname', root).textContent = o.agg === 'mean' ? 'average' : 'median'; }, { p: v => fmt(v, 2), n: v => v });
+    const paint = GT.bindRanges(root, o => { params = o; $('#bc-aggname', root).textContent = o.agg === 'mean' ? 'average' : 'median'; resetRounds(); }, { p: v => fmt(v, 2), n: v => v });
     params = paint();
     const guessEl = $('#bc-guess', root);
     guessEl.oninput = () => $('#bc-gv', root).textContent = guessEl.value;
@@ -137,7 +137,8 @@
       drawTrend();
       GT.log('beauty-contest', `Round ${rounds.length}: guessed ${you}, target ${fmt(r.T, 1)}${won ? ' (won)' : ''}`, { p, n, you, target: r.T, avg: r.A });
     };
-    $('#bc-reset', root).onclick = () => { rounds = []; $('#bc-round', root).textContent = 1; $('#bc-msg', root).innerHTML = ''; $('#bc-trend', root).innerHTML = '<p class="muted">Play several rounds to see the target fall towards 0.</p>'; };
+    function resetRounds() { rounds = []; $('#bc-round', root).textContent = 1; $('#bc-msg', root).innerHTML = ''; $('#bc-trend', root).innerHTML = '<p class="muted">Play several rounds to see the target fall towards 0.</p>'; }
+    $('#bc-reset', root).onclick = resetRounds;
 
     $('#bc-demo', root).onclick = () => { $('#bc-paste', root).value = botsRound1(45, params.p).map((g, i) => `Student ${i + 1}: ${Math.round(g)}`).join('\n'); };
     $('#bc-class-go', root).onclick = () => {

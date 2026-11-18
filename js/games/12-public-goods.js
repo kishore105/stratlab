@@ -53,7 +53,7 @@
 
     GT.subtabs(root);
     let prm, mode = 'std', bots, me, punishPending = false;
-    const paint = GT.bindRanges(root, o => { prm = o; }, { m: v => fmt(v, 2) });
+    const paint = GT.bindRanges(root, o => { prm = o; if (me) setup(); }, { m: v => fmt(v, 2) });
     prm = paint();
     const cEl = $('#pg-c', root);
     cEl.oninput = () => $('#pg-cv', root).textContent = cEl.value;

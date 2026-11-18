@@ -62,7 +62,7 @@
     let prm;
     const pay = (a, b) => a === C ? (b === C ? 3 : 0) : (b === C ? prm.T : 1);
     let G;
-    const paint = GT.bindRanges(root, o => { prm = o; drawMatrix(); drawCalc(); }, { delta: v => fmt(v, 2), noise: v => GT.pct(v) });
+    const paint = GT.bindRanges(root, o => { const restart = G && o.T !== prm.T; prm = o; drawMatrix(); drawCalc(); if (restart) newGame(); }, { delta: v => fmt(v, 2), noise: v => GT.pct(v) });
     prm = paint();
     GT.subtabs(root, s => { if (s === 'calc') drawCalc(); });
 
