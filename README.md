@@ -39,7 +39,8 @@ then open http://localhost:8000.
 Alternative with zero setup: drag the folder onto https://app.netlify.com/drop for an instant URL.
 
 ## Notes
-- Results are logged in each user's browser (localStorage) and can be exported as CSV or JSON from **My results**. No data leaves the browser.
+- Results are logged in each user's browser (localStorage) and can be exported as CSV or JSON from **My results**.
+- For signed-in students, each finished game also sends their name, roll number, choices and result to the course Google Sheet. Guests' results are not sent.
 - Case figures are approximate and meant for teaching. Verify them before quoting in assessed work.
 
 ## Collecting results centrally

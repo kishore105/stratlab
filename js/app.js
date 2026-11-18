@@ -56,7 +56,7 @@
       ${launch ? `<div class="launch-brand">${LOGO}<span><b>StratLab</b><small>Strategic Decision Making: A Game Theoretic Approach</small></span></div>` : ''}
       <div class="kicker">${launch ? 'Sign in' : 'Your details'}</div>
       <h2 id="idTitle">${launch ? 'Enter your name and roll number' : 'Change name or roll number'}</h2>
-      <p>Your name, roll number and the result of each game you finish are sent to the course's Google Sheet, which only the course team can open. Nothing else is recorded.</p>
+      <p>When you finish a game, your name, roll number, choices and result are sent to the course's Google Sheet, along with the time. Only the course team can open it.</p>
       <div class="field"><label for="idName">Full name</label><input type="text" id="idName" maxlength="60" autocomplete="name" value="${esc(cur.name)}"></div>
       <div class="field"><label for="idRoll">Roll number</label><input type="text" id="idRoll" maxlength="20" autocomplete="off" value="${esc(cur.roll)}"></div>
       <p class="idErr" id="idErr"></p>
@@ -204,7 +204,7 @@
     root.innerHTML = `
       <div class="prose" style="max-width:920px">
         <div class="page-head"><div class="kicker">For faculty</div><h1>Running the games in class</h1>
-        <p class="lead">Every simulation can run in two ways. In <b>Solo / AI mode</b> students play against calibrated AI rivals on their laptops or phones. In <b>Classroom mode</b> the faculty projects the page and enters the whole class's responses to show aggregate results live. No logins, installs or backend are needed.</p></div>
+        <p class="lead">Every simulation can run in two ways. In <b>Solo / AI mode</b> students play against calibrated AI rivals on their laptops or phones. In <b>Classroom mode</b> the faculty projects the page and enters the whole class's responses to show aggregate results live. Nothing needs installing. Students sign in with their name and roll number, and faculty can continue as guests.</p></div>
 
         <h3>Session template (works for any game)</h3>
         <div class="guide-grid">
@@ -238,7 +238,9 @@
         <h3>Practical tips</h3>
         <ul>
           <li>Phones work: the layout adapts to small screens.</li>
-          <li>Results are stored only in each student's own browser. Ask them to export from <a href="#/results">My Results</a> before switching devices.</li>
+          <li>When a signed-in student finishes a game, their name, roll number, choices and result are sent to the course Google Sheet, which only people it is shared with can open. Guests' results stay in their own browser.</li>
+          <li>Progress ticks are kept per browser, so they do not follow a student to another device. Results already sent stay in the Sheet.</li>
+          <li>Continue as a guest when projecting Classroom mode. If you are signed in, whatever you paste there is sent to the Sheet under your name.</li>
           <li>For anonymous live input, collect responses in a Google Form, copy the response column, and paste it into Classroom mode.</li>
           <li>Payoffs in every model are editable or slider-driven, so you can rebuild a case's numbers in class.</li>
         </ul>
@@ -298,7 +300,7 @@
       <p class="lead">StratLab was built as a Working with AI (WAI) project for the Term V elective <i>Strategic Decision Making: A Game Theoretic Approach</i>. It follows the session plan of the course: each game corresponds to one or more sessions and uses the cases named in the outline where possible.</p></div>
       <div class="prose" style="max-width:880px">
         <h3>How it is meant to be used</h3>
-        <p>A student should be able to open a game, read three lines of instructions and start playing. The theory, cases and debrief questions sit in separate tabs so they don't get in the way of the simulation. Faculty can run most games live by collecting the class's choices and pasting them in. Nothing is stored on a server: results stay in the browser until the student exports them.</p>
+        <p>A student should be able to open a game, read three lines of instructions and start playing. The theory, cases and debrief questions sit in separate tabs so they don't get in the way of the simulation. Faculty can run most games live by collecting the class's choices and pasting them in. Students sign in with their name and roll number. Each game they finish sends their name, roll number, choices and result to a Google Sheet that only the course team can open. A copy also stays in their browser, where they can export it from My results. Guests' results are not sent anywhere.</p>
         <p>Computer opponents follow published experimental findings rather than perfect rationality. Ultimatum responders reject low offers at the rates reported by Güth et al. and Camerer; the beauty-contest class reasons one to three steps deep as in Nagel (1995); public-goods players are conditional cooperators as in Fischbacher, Gächter and Fehr (2001). The gap between what the model predicts and what happens in play is part of what students are meant to discuss.</p>
         <h3>How the models were checked</h3>
         <p>Each solver's output was compared with a hand calculation for the default numbers. The results below are what the site shows when you open each game without changing anything.</p>
